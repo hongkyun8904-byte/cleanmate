@@ -1,1 +1,2101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>CleanMate – 청소 견적부터 예약까지, 한 번에</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui, sans-serif;
+      background: #f5f7fb;
+      color: #222;
+      line-height: 1.5;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(245, 247, 251, 0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-wrap img {
+      height: 40px;
+      width: auto;
+    }
+
+    .logo-text-main {
+      font-weight: 700;
+      font-size: 20px;
+      color: #0288d1;
+    }
+
+    .logo-text-sub {
+      font-size: 12px;
+      color: #5f6a7a;
+    }
+
+    .header-cta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #5f6a7a;
+    }
+
+    .header-cta button {
+      border: none;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: #0288d1;
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(2, 136, 209, 0.25);
+    }
+
+    .header-cta button:hover {
+      background: #0073b0;
+    }
+
+    /* HERO */
+
+    .hero {
+      flex: 1;
+      max-width: 1200px;
+      margin: 24px auto 32px;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 32px;
+      align-items: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hero-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 28px 28px 24px;
+      box-shadow: 0 16px 40px rgba(15, 35, 52, 0.10);
+      border: 1px solid rgba(2, 136, 209, 0.06);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: #e0f7fa;
+      color: #0277bd;
+      margin-bottom: 18px;
+    }
+
+    .hero-badge span.icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #0288d1;
+      color: #fff;
+      font-size: 11px;
+    }
+
+    .hero-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #222;
+      margin-bottom: 10px;
+    }
+
+    .hero-title strong {
+      color: #0288d1;
+    }
+
+    .hero-subtitle {
+      font-size: 15px;
+      color: #5f6a7a;
+      margin-bottom: 20px;
+    }
+
+    .hero-list {
+      list-style: none;
+      font-size: 13px;
+      color: #4b5665;
+      margin-bottom: 22px;
+    }
+
+    .hero-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .hero-list li span.dot {
+      margin-top: 4px;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #81d4fa;
+      flex-shrink: 0;
+    }
+
+    .hero-cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .hero-main-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 22px;
+      border-radius: 999px;
+      background: #0288d1;
+      color: #fff;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      box-shadow: 0 14px 22px rgba(2, 136, 209, 0.30);
+    }
+
+    .hero-main-btn span.icon {
+      font-size: 15px;
+    }
+
+    .hero-caption {
+      font-size: 11px;
+      color: #8a94a6;
+    }
+
+    .hero-caption strong {
+      color: #0288d1;
+      font-weight: 600;
+    }
+
+    /* HERO – RIGHT : 아이콘형 서비스 카드 */
+
+    .hero-ba {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 18px 18px 20px;
+      box-shadow: 0 16px 40px rgba(15, 35, 52, 0.08);
+      border: 1px solid rgba(2, 136, 209, 0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .hero-ba-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .hero-ba-header-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #222;
+    }
+
+    .hero-ba-header-sub {
+      font-size: 11px;
+      color: #5f6a7a;
+    }
+
+    .hero-ba-illustration {
+      background: linear-gradient(135deg, #e3f2fd, #e0f7fa);
+      border-radius: 18px;
+      padding: 14px 14px 16px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+    }
+
+    @media (max-width: 500px) {
+      .hero-ba-illustration {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hero-ba-left-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #01579b;
+      margin-bottom: 4px;
+    }
+
+    .hero-ba-left-text {
+      font-size: 11px;
+      color: #1565c0;
+    }
+
+    .hero-ba-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .hero-ba-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.9);
+      font-size: 11px;
+      color: #01579b;
+    }
+
+    .hero-ba-badge span.icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      background: #0288d1;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .hero-ba-right {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+      color: #01579b;
+    }
+
+    .hero-ba-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .hero-ba-pill {
+      padding: 4px 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.9);
+      font-size: 10px;
+      color: #1565c0;
+    }
+
+    .hero-ba-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #607084;
+    }
+
+    .hero-ba-stats strong {
+      color: #01579b;
+    }
+
+    /* SECTION: 견적 입력 */
+
+    .section {
+      max-width: 1200px;
+      margin: 0 auto 42px;
+      padding: 0 20px;
+    }
+
+    .section-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 14px;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #222;
+    }
+
+    .section-subtitle {
+      font-size: 12px;
+      color: #5f6a7a;
+    }
+
+    .estimate-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .estimate-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 18px 18px 18px;
+      box-shadow: 0 10px 28px rgba(15, 35, 52, 0.08);
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #222;
+    }
+
+    .field {
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 4px;
+      color: #4b5665;
+      font-weight: 500;
+    }
+
+    .field small {
+      display: block;
+      font-size: 11px;
+      color: #8a94a6;
+      margin-top: 2px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #d1d9e6;
+      padding: 8px 10px;
+      font-size: 13px;
+      outline: none;
+      background: #f9fafc;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #0288d1;
+      box-shadow: 0 0 0 1px rgba(2, 136, 209, 0.45);
+      background: #ffffff;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: #4b5665;
+    }
+
+    .checkbox-row input {
+      transform: translateY(1px);
+    }
+
+    .options-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .counter {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      background: #f1f4fb;
+      padding: 3px 8px;
+      gap: 4px;
+    }
+
+    .counter button {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      border: none;
+      background: #e0f2ff;
+      color: #1565c0;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .counter span {
+      min-width: 18px;
+      text-align: center;
+      font-size: 12px;
+      color: #374151;
+    }
+
+    .upload-area {
+      border-radius: 12px;
+      border: 1px dashed #b0bec5;
+      background: #f9fafc;
+      padding: 14px;
+      text-align: center;
+      font-size: 12px;
+      color: #607084;
+      margin-bottom: 10px;
+    }
+
+    .upload-area input {
+      margin-top: 8px;
+    }
+
+    .primary-btn {
+      width: 100%;
+      padding: 11px 16px;
+      border-radius: 999px;
+      border: none;
+      background: #0288d1;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      box-shadow: 0 12px 20px rgba(2, 136, 209, 0.26);
+    }
+
+    .primary-btn:hover {
+      background: #0073b0;
+    }
+
+    .small-note {
+      font-size: 11px;
+      color: #8a94a6;
+      margin-top: 8px;
+    }
+
+    /* 결과 카드 */
+
+    .result-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .result-summary {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-bottom: 1px dashed #e0e7f0;
+      padding-bottom: 8px;
+    }
+
+    .result-summary strong {
+      font-size: 16px;
+      color: #0288d1;
+    }
+
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+    }
+
+    .result-table th,
+    .result-table td {
+      padding: 6px 4px;
+      border-bottom: 1px solid #eef2f7;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .result-table th {
+      background: #f3f6fb;
+      color: #4b5665;
+      font-weight: 600;
+    }
+
+    .result-table td.label {
+      text-align: left;
+      padding-left: 6px;
+    }
+
+    /* SECTION: Before & After GAL */
+
+    .ba-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    @media (max-width: 1100px) {
+      .ba-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 800px) {
+      .ba-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      .ba-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ba-card {
+      background: #ffffff;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 22px rgba(15, 35, 52, 0.06);
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .ba-card img {
+      width: 100%;
+      display: block;
+    }
+
+    .ba-card-footer {
+      padding: 8px 10px 9px;
+      font-size: 11px;
+      color: #4b5665;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ba-card-footer span.tag {
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #e3f2fd;
+      color: #1565c0;
+      font-size: 10px;
+    }
+
+    /* FOOTER */
+
+    footer {
+      border-top: 1px solid rgba(0,0,0,0.04);
+      background: #ffffff;
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 20px 18px;
+      font-size: 11px;
+      color: #90a0b5;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .footer-inner strong {
+      color: #5f6a7a;
+    }
+  </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+  const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
+  const SUPABASE_KEY = "여기에 anon public_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
+
+  const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+</script>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-wrap">
+        <img src="logo-cleanmate.png" alt="CleanMate 로고" />
+        <div>
+          <div class="logo-text-main">CleanMate</div>
+          <div class="logo-text-sub">청소 견적부터 예약까지, 한 번에</div>
+        </div>
+      </div>
+      <div class="header-cta">
+        <span>실제 청소 기준 단가로 자동 계산</span>
+        <button type="button" onclick="scrollToEstimate()">지금 청소 견적 받기</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <main>
+
+    <section class="hero">
+      <!-- LEFT -->
+      <div class="hero-card">
+        <div class="hero-badge">
+          <span class="icon">★</span>
+          청소 견적부터 예약까지, 한 번에
+        </div>
+
+        <h1 class="hero-title">
+          불투명한 견적과 갑작스러운 추가요금,<br />
+          이제 <strong>클린메이트</strong>가 막아드립니다.
+        </h1>
+
+        <p class="hero-subtitle">
+          구조·평수·옵션과 오염도까지 반영해<br />
+          실제 청소 기준 단가로 합리적인 견적을 계산합니다.
+        </p>
+
+        <ul class="hero-list">
+          <li><span class="dot"></span>사진 최대 30장 업로드 &nbsp;·&nbsp; 오염도별 추가요금 자동 산정</li>
+          <li><span class="dot"></span>원룸·투룸·쓰리룸·복층 &nbsp;·&nbsp; 거주청소·붙박이장·주방 옵션 선택</li>
+          <li><span class="dot"></span>현장 도착 후 과도한 추가요금을 막기 위한 기준 견적 제공</li>
+        </ul>
+
+        <div class="hero-cta-row">
+          <button class="hero-main-btn" type="button" onclick="scrollToEstimate()">
+            <span class="icon">⚡</span>
+            지금 청소 견적 바로 받아보기
+          </button>
+          <span class="hero-caption">
+            구조/옵션 입력 → (사진 선택) → <strong>예상 총 견적 즉시 확인</strong>
+          </span>
+        </div>
+
+        <p class="hero-caption">
+          실제 청소팀이 사용하는 내부 단가표를 기반으로 만들어졌으며,<br />
+          현장 상황에 따라 최종 금액은 조정될 수 있습니다.
+        </p>
+      </div>
+
+      <!-- RIGHT : 아이콘형 서비스 카드 -->
+      <div class="hero-ba">
+        <div class="hero-ba-header">
+          <div>
+            <div class="hero-ba-header-title">클린메이트 견적 요약</div>
+            <div class="hero-ba-header-sub">한눈에 보는 서비스 구조</div>
+          </div>
+        </div>
+
+        <div class="hero-ba-illustration">
+          <div>
+            <div class="hero-ba-left-title">구조 · 평수 · 옵션 · 오염도</div>
+            <div class="hero-ba-left-text">
+              집 구조와 평수, 거주 여부, 붙박이장/주방 옵션에<br />
+              필요한 부분만 사진으로 추가해 보다 정확한 견적을 안내합니다.
+            </div>
+            <div class="hero-ba-badges">
+              <div class="hero-ba-badge">
+                <span class="icon">🏠</span>
+                구조·평수 자동 반영
+              </div>
+              <div class="hero-ba-badge">
+                <span class="icon">🧺</span>
+                거주/붙박이/주방 옵션
+              </div>
+              <div class="hero-ba-badge">
+                <span class="icon">📷</span>
+                오염도 기준 사진선택
+              </div>
+            </div>
+          </div>
+          <div class="hero-ba-right">
+            <div class="hero-ba-pill-row">
+              <div class="hero-ba-pill">22평 이하 22만원 기준</div>
+              <div class="hero-ba-pill">23평 이상 평당 1만원</div>
+              <div class="hero-ba-pill">비확장 +5만원</div>
+              <div class="hero-ba-pill">복층 평당 5천원</div>
+            </div>
+            <div class="hero-ba-stats">
+              <span>거주청소 · 붙박이장 · 주방 내부청소 선택</span>
+              <span><strong>실제 운영 단가 기반</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 견적 입력 SECTION -->
+    <section class="section" id="estimate-section">
+      <div class="section-title-row">
+        <div>
+          <div class="section-title">자동 견적 입력</div>
+          <div class="section-subtitle">
+            사진은 선택 사항이며, 구조/평수/옵션 입력만으로도 견적 조회가 가능합니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="estimate-grid">
+        <!-- LEFT : 입력 -->
+        <div class="card">
+          <div class="card-title">1. 사진 업로드 &amp; 집 정보 입력</div>
+
+          <div class="upload-area">
+            사진 견적에는 <strong>오염도가 있는 사진만</strong> 넣어주세요.<br />
+            사진을 넣지 않고도 견적 조회가 가능합니다.
+            <input type="file" id="photoInput" accept="image/*" multiple />
+          </div>
+
+          <div class="field">
+            <label for="structure">구조 선택</label>
+            <select id="structure">
+              <option value="원룸">원룸 / 원룸계열</option>
+              <option value="투룸">투룸</option>
+              <option value="쓰리룸">쓰리룸</option>
+              <option value="복층">복층형 구조</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="supplyArea">공급 평수</label>
+            <input type="number" id="supplyArea" placeholder="예: 23" min="1" />
+            <small>22평 이하: 22만원 / 23평 이상: 평당 1만원 기준</small>
+          </div>
+
+          <div class="checkbox-row">
+            <input type="checkbox" id="isUnexpanded" />
+            <label for="isUnexpanded">거실 비확장 (발코니가 그대로 남아있는 구조) +50,000원</label>
+          </div>
+
+          <div class="field">
+            <label for="loftArea">복층 면적 (평)</label>
+            <input type="number" id="loftArea" placeholder="복층 면적이 없다면 0" min="0" />
+            <small>복층 추가금: 복층 면적 × 5,000원</small>
+          </div>
+
+          <div class="field">
+            <label>거주청소 / 붙박이장 / 주방 옵션</label>
+
+            <div class="checkbox-row">
+              <input type="checkbox" id="isLiveIn" />
+              <label for="isLiveIn">거주청소 (짐이 있는 상태) +50,000원</label>
+            </div>
+<!-- 사이청소 -->
+<div class="checkbox-row" style="margin-top:8px;">
+  <input type="checkbox" id="sideClean" />
+  <label for="sideClean">사이청소  +50,000원</label>
+</div>
+
+<!-- 특수청소 -->
+<div class="checkbox-row" style="margin-top:4px;">
+  <input
+    type="checkbox"
+    id="specialClean"
+    onchange="updateApplyButtonText()"
+  />
+  <label for="specialClean">
+    특수청소 (가격 별도 · 상담 필요)
+  </label>
+</div>
+
+<small style="font-size:11px;color:#8a94a6;">
+  특수청소는 현장 상태에 따라 상담 후 진행됩니다.
+</small>            <div class="options-row">
+              <span style="font-size:12px;">붙박이장 2도어 (문 2개 기준)</span>
+              <div class="counter">
+                <button type="button" onclick="updateCounter('ward2', -1)">-</button>
+                <span id="ward2Count">0</span>
+                <button type="button" onclick="updateCounter('ward2', 1)">+</button>
+              </div>
+            </div>
+            <small>1개당 +50,000원</small>
+
+            <div class="options-row" style="margin-top:6px;">
+              <span style="font-size:12px;">붙박이장 3도어 (문 3개 기준)</span>
+              <div class="counter">
+                <button type="button" onclick="updateCounter('ward3', -1)">-</button>
+                <span id="ward3Count">0</span>
+                <button type="button" onclick="updateCounter('ward3', 1)">+</button>
+              </div>
+            </div>
+            <small>1개당 +70,000원</small>
+
+            <div class="checkbox-row" style="margin-top:8px;">
+              <input type="checkbox" id="kitchenDeep" />
+              <label for="kitchenDeep">주방 전체 비우고 내부 청소 +70,000원</label>
+            </div>
+          </div>
+
+          <button class="primary-btn" type="button" onclick="calculateEstimate()">
+            자동 분석 &amp; 견적 계산하기
+          </button>
+
+          <p class="small-note">
+            사진이 없을 경우, 구조·평수·옵션만으로 기본 견적이 계산되며<br />
+            사진을 추가하면 오염도에 따른 추가요금이 함께 반영됩니다.
+          </p>
+        </div>
+
+        <!-- RIGHT : 결과 + 신청 -->
+        <div class="card">
+          <div class="card-title">2. 자동견적 결과 &amp; 신청</div>
+
+          <div class="result-row">
+            <div class="result-summary">
+              <div>
+                <div style="font-size:12px;color:#8a94a6;">예상 총 견적</div>
+                <strong id="totalPriceText">- 원</strong>
+<div id="specialNotice" style="
+  display:none;
+  margin-top:6px;
+  font-size:12px;
+  color:#c62828;
+  font-weight:600;
+">
+  특수청소는 현장 상태에 따라<br>
+  상담 후 금액이 결정됩니다.
+</div>
+              </div>
+              <div style="font-size:11px;color:#8a94a6;text-align:right;">
+                사진 수: <span id="photoCountText">0장</span><br />
+                평균 오염도: <span id="avgScoreText">-</span>점 / 최대 <span id="maxScoreText">-</span>점
+              </div>
+            </div>
+
+            <table class="result-table">
+              <tbody>
+              <tr>
+                <th class="label">구분</th>
+                <th>금액</th>
+              </tr>
+              <tr>
+                <td class="label">기본가</td>
+                <td id="basePriceCell">-</td>
+              </tr>
+              <tr>
+                <td class="label">비확장 추가</td>
+                <td id="unexpCell">-</td>
+              </tr>
+              <tr>
+                <td class="label">복층 추가</td>
+                <td id="loftCell">-</td>
+              </tr>
+              <tr>
+                <td class="label">거주/붙박이/사이/주방 옵션</td>
+                <td id="optionsCell">-</td>
+              </tr>
+              <tr>
+                <td class="label">사진 오염도 추가요금 합계</td>
+                <td id="photoExtraCell">-</td>
+              </tr>
+              </tbody>
+            </table>
+
+            <div style="margin-top:10px;">
+              <div style="font-size:12px;font-weight:600;margin-bottom:4px;color:#374151;">
+                사진별 오염도 상세
+              </div>
+              <table class="result-table" id="photoDetailTable">
+                <thead>
+                <tr>
+                  <th>사진</th>
+                  <th>오염도</th>
+                  <th>난이도</th>
+                  <th>추가요금</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td colspan="4" style="padding:10px 4px;font-size:11px;color:#8a94a6;">
+                    사진을 업로드한 경우, 각 사진별 오염도와 추가요금이 이곳에 표로 표시됩니다.
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 3. 고객 정보 입력 & 자동 신청 -->
+            <div id="requestBox" style="margin-top:12px;padding-top:10px;border-top:1px dashed #e0e7f0;display:none;">
+              <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:#374151;">
+                3. 고객 정보 입력 &amp; 견적 신청
+              </div>
+
+              <div class="field">
+                <label for="custName">이름</label>
+                <input type="text" id="custName" placeholder="예: 김홍균" />
+              </div>
+              <div class="field">
+                <label for="custPhone">연락처</label>
+                <input type="text" id="custPhone" placeholder="예: 010-0000-0000" />
+              </div>
+              <div class="field">
+                <label for="custAddr">주소</label>
+                <input type="text" id="custAddr" placeholder="예: 수원시 ○○구 ○○동 ○○아파트" />
+              </div>
+              <div class="field">
+                <label for="custMemo">요청사항 (선택)</label>
+                <input type="text" id="custMemo" placeholder="예: 입주청소 / 반려동물 있음 / 시간대 요청 등" />
+              </div>
+
+           <button id="applyBtn" class="primary-btn" type="button" onclick="sendToKakao()">
+  우수업체에게 자동 신청하기
+</button>
+
+<div id="depositNotice" style="
+  display:none;
+  margin-top:10px;
+  padding:12px;
+  border-radius:12px;
+  background:#fff8e1;
+  border:1px solid #ffe082;
+  font-size:12px;
+  color:#5d4037;
+">
+  <b>예약금 안내</b><br><br>
+
+  예약 확정을 위해<br>
+  <b>예약금 60,000원</b>을 입금해주세요.<br><br>
+
+  은행: <b>카카오뱅크</b><br>
+  계좌번호: <b>3333054572187</b><br>
+  예금주: <b>김홍균</b><br><br>
+
+  <span style="color:#d84315;font-weight:600;">
+    ※ 입금 확인이 되면 우수업체로<br>
+    바로 자동 배정됩니다.
+  </span>
+</div>
+
+<p class="small-note">
+  신청하기 버튼을 누르면 카카오톡 오픈채팅이 열리며,<br />
+  견적 내용이 복사된 상태에서 상담을 이어가실 수 있습니다.
+</p>
+
+              <p class="small-note">
+                신청하기 버튼을 누르면 카카오톡 오픈채팅이 열리며,<br />
+                견적 내용이 복사된 상태에서 상담을 이어가실 수 있습니다.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+<!-- ===============================
+     실제 이용 고객 후기
+     =============================== -->
+<section class="section" id="review-section">
+  <div class="section-title-row">
+    <div>
+      <div class="section-title">실제 이용 고객 후기</div>
+      <div class="section-subtitle">
+        클린메이트를 통해 청소를 진행한 고객 후기입니다.
+      </div>
+    </div>
+  </div>
+
+  <div id="publicReviewList"
+       style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;">
+    <!-- JS로 리뷰 들어감 -->
+  </div>
+</section>
+
+    <!-- Before & After GALLERY -->
+    <section class="section">
+      <div class="section-title-row">
+        <div>
+          <div class="section-title">Before &amp; After 갤러리</div>
+          <div class="section-subtitle">
+            실제 청소 현장에서 촬영한 전·후 사진들입니다. 클린메이트 기준으로 작업 난이도와 견적을 계산합니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="ba-grid">
+        <div class="ba-card">
+          <img src="ba-1.webp" alt="Before & After 1" />
+          <div class="ba-card-footer">
+            <span>클린메이트</span>
+            <span class="tag"></span>
+          </div>
+        </div>
+        <div class="ba-card">
+          <img src="ba-2.webp" alt="Before & After 2" />
+          <div class="ba-card-footer">
+            <span>쓰레기집 청소</span>
+            <span class="tag">특수 청소</span>
+          </div>
+        </div>
+        <div class="ba-card">
+          <img src="ba-3.webp" alt="Before & After 3" />
+          <div class="ba-card-footer">
+            <span>싱크대 하부 먼지 제거</span>
+            <span class="tag">주방 청소</span>
+          </div>
+        </div>
+        <div class="ba-card">
+          <img src="ba-4.webp" alt="Before & After 4" />
+          <div class="ba-card-footer">
+            <span>욕실 선반 물때 제거</span>
+            <span class="tag">수전/세면대</span>
+          </div>
+        </div>
+        <div class="ba-card">
+          <img src="ba-5.webp" alt="Before & After 5" />
+          <div class="ba-card-footer">
+            <span>창틀청소 · 먼지 제거</span>
+            <span class="tag">샷시/창틀</span>
+          </div>
+        </div>
+        <div class="ba-card">
+          <img src="ba-6.webp" alt="Before & After 6" />
+          <div class="ba-card-footer">
+            <span>베란다 곰팡이 &amp; 먼지 제거</span>
+            <span class="tag">베란다 청소</span>
+          </div>
+        </div>
+        <div class="ba-card">
+          <img src="ba-7.webp" alt="Before & After 7" />
+          <div class="ba-card-footer">
+            <span>가스레인지 기름때 제거</span>
+            <span class="tag">주방 청소</span>
+          </div>
+        </div>
+        <div class="ba-card">
+          <img src="ba-8.webp" alt="Before & After 8" />
+          <div class="ba-card-footer">
+            <span>수전 물때 &amp; 스케일 제거</span>
+            <span class="tag">욕실 청소</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <strong>CleanMate</strong> · 청소 견적 자동 계산 서비스<br />
+        사업자용/파트너용 계정은 별도 문의 바랍니다.
+      </div>
+      <div>
+        © CleanMate. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+</div>
+<!-- ===============================
+     관리자 대시보드 (숨김)
+     =============================== -->
+<div id="adminDashboard" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:#f5f7fb;
+  z-index:9998;
+  overflow:auto;
+">
+  <div style="max-width:1200px;margin:20px auto;padding:20px;">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+<div style="
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding-bottom:12px;
+  border-bottom:1px solid #ddd;
+">
+  <div>
+    <h2 style="margin:0;">CleanMate 관리자</h2>
+    <div style="font-size:12px;color:#666;">
+      견적 · 고객 · 업체 · 리뷰 통합 관리
+    </div>
+  </div>
+  <button onclick="closeAdminDashboard()"
+    style="padding:8px 14px;border-radius:8px;border:1px solid #ccc;">
+    닫기
+  </button>
+</div>
+    </div>
+
+    <div style="margin-top:20px;display:flex;gap:12px;">
+      <button
+  onclick="showAdminTab('reviews')"
+  style="
+    padding:10px 14px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    background:#fff;
+    font-weight:600;
+    cursor:pointer;
+  "
+>
+  ⭐ 리뷰 관리
+</button>
+      <button onclick="showAdminTab('companies')">🏢 업체 관리</button>
+      <button onclick="showAdminTab('customers')">👤 고객 관리</button>
+      <button onclick="showAdminTab('orders')">📋 예약 관리</button>
+    </div>
+
+    <!-- 탭 영역 -->
+    <div id="adminContent" style="margin-top:20px;"></div>
+
+  </div>
+</div>
+
+<script>
+const ORDER_STEPS = [
+  "접수됨",
+  "입금확인",
+  "배정중",
+  "배정완료"
+];
+
+let customers = [];
+
+function renderStatusFlow(currentStatus) {
+  const currentIndex = ORDER_STEPS.indexOf(currentStatus);
+
+  return `
+    <div style="display:flex;gap:6px;margin-top:8px;">
+      ${ORDER_STEPS.map((step, idx) => {
+        let bg = "#eee";
+        let color = "#999";
+
+        if (idx < currentIndex) {
+          bg = "#e3f2fd";     // 완료(지나간 단계)
+          color = "#1565c0";
+        } else if (idx === currentIndex) {
+          bg = "#0288d1";     // 현재 단계
+          color = "#fff";
+        }
+
+        return `
+          <div style="
+            flex:1;
+            text-align:center;
+            padding:6px 0;
+            border-radius:999px;
+            font-size:11px;
+            font-weight:600;
+            background:${bg};
+            color:${color};
+          ">
+            ${step}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+/* ===============================
+   고객 데이터 (관리자 전용)
+   =============================== */
+
+function updateApplyButtonText() {
+  const isSpecial = document.getElementById("specialClean").checked;
+  const btn = document.getElementById("applyBtn");
+
+  if (!btn) return;
+
+  if (isSpecial) {
+    btn.textContent = "특수청소 상담 신청하기";
+  } else {
+    btn.textContent = "우수업체에게 자동 신청하기";
+  }
+}
+
+  function formatPrice(num) {
+    if (num === 0) return "0원";
+    if (!num) return "-";
+    return num.toLocaleString("ko-KR") + "원";
+  }
+
+  function scrollToEstimate() {
+    const el = document.getElementById("estimate-section");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function updateCounter(type, delta) {
+    const id = type === "ward2" ? "ward2Count" : "ward3Count";
+    const el = document.getElementById(id);
+    let val = parseInt(el.textContent || "0", 10);
+    val += delta;
+    if (val < 0) val = 0;
+    el.textContent = String(val);
+  }
+
+  function calculateEstimate() {
+    const structure = document.getElementById("structure").value;
+    const supplyArea = parseFloat(document.getElementById("supplyArea").value || "0");
+    const isUnexpanded = document.getElementById("isUnexpanded").checked;
+    const loftArea = parseFloat(document.getElementById("loftArea").value || "0");
+    const isLiveIn = document.getElementById("isLiveIn").checked;
+    const ward2Count = parseInt(document.getElementById("ward2Count").textContent || "0", 10);
+    const ward3Count = parseInt(document.getElementById("ward3Count").textContent || "0", 10);
+    const kitchenDeep = document.getElementById("kitchenDeep").checked;
+const sideClean = document.getElementById("sideClean").checked;
+const specialClean = document.getElementById("specialClean").checked;
+const specialNotice = document.getElementById("specialNotice");
+updateApplyButtonText();
+
+    // 사진 수 & 랜덤 오염도
+    const files = document.getElementById("photoInput").files;
+    const photoCount = files.length;
+    let scores = [];
+
+    if (photoCount > 0) {
+      for (let i = 0; i < photoCount; i++) {
+        // 40~95 사이 랜덤 (현재는 샘플용)
+        const score = Math.floor(40 + Math.random() * 56);
+        scores.push(score);
+      }
+    }
+
+    const avgScore = scores.length
+      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+      : null;
+    const maxScore = scores.length ? Math.max(...scores) : null;
+
+    // 1) 기본가
+    let basePrice = 0;
+    if (structure === "원룸") {
+      basePrice = 160000;
+    } else {
+      if (supplyArea <= 0) {
+        basePrice = 0;
+      } else if (supplyArea <= 22) {
+        basePrice = 220000;
+      } else {
+        basePrice = supplyArea * 10000;
+      }
+    }
+
+    // 2) 비확장 + 복층
+    const unexpAdd = isUnexpanded ? 50000 : 0;
+    const loftAdd = loftArea > 0 ? loftArea * 5000 : 0;
+
+    // 3) 거주 / 붙박이 / 주방
+    let optionsAdd = 0;
+if (sideClean) optionsAdd += 50000;
+    if (isLiveIn) optionsAdd += 50000;
+    optionsAdd += ward2Count * 50000;
+    optionsAdd += ward3Count * 70000;
+    if (kitchenDeep) optionsAdd += 70000;
+
+    // 4) 사진별 오염도 추가요금 (보통 더러움 0원)
+    //    0~60 : 0원
+    //    61~75 : +10,000원
+    //    76~90 : +30,000원
+    //    91~100: +50,000원
+    let photoExtraTotal = 0;
+    let detailRowsHtml = "";
+
+    if (scores.length) {
+      scores.forEach((score, idx) => {
+        let extra = 0;
+        let level = "보통";
+        if (score > 60 && score <= 75) {
+          extra = 10000;
+          level = "약간 높음";
+        } else if (score > 75 && score <= 90) {
+          extra = 30000;
+          level = "높음";
+        } else if (score > 90) {
+          extra = 50000;
+          level = "매우 높음";
+        }
+        photoExtraTotal += extra;
+
+        detailRowsHtml += `
+          <tr>
+            <td>${idx + 1}번</td>
+            <td>${score}점</td>
+            <td>${level}</td>
+            <td>${extra ? "+" + extra.toLocaleString("ko-KR") + "원" : "0원"}</td>
+          </tr>
+        `;
+      });
+    } else {
+      detailRowsHtml = `
+        <tr>
+          <td colspan="4" style="padding:10px 4px;font-size:11px;color:#8a94a6;">
+            사진을 업로드한 경우, 각 사진별 오염도와 추가요금이 표시됩니다.
+          </td>
+        </tr>
+      `;
+    }
+
+    const total = basePrice + unexpAdd + loftAdd + optionsAdd + photoExtraTotal;
+
+    // 화면 반영
+    document.getElementById("photoCountText").textContent = photoCount + "장";
+    document.getElementById("avgScoreText").textContent = avgScore !== null ? avgScore : "-";
+    document.getElementById("maxScoreText").textContent = maxScore !== null ? maxScore : "-";
+
+    document.getElementById("basePriceCell").textContent = formatPrice(basePrice);
+    document.getElementById("unexpCell").textContent = formatPrice(unexpAdd);
+    document.getElementById("loftCell").textContent = formatPrice(loftAdd);
+    document.getElementById("optionsCell").textContent = formatPrice(optionsAdd);
+    document.getElementById("photoExtraCell").textContent = formatPrice(photoExtraTotal);
+    if (specialClean) {
+  document.getElementById("totalPriceText").textContent = "상담 후 결정";
+  specialNotice.style.display = "block";
+} else {
+  document.getElementById("totalPriceText").textContent = formatPrice(total);
+  specialNotice.style.display = "none";
+}
+
+    const tbody = document.querySelector("#photoDetailTable tbody");
+    tbody.innerHTML = detailRowsHtml;
+
+    // 계산 후 신청 박스 오픈
+    document.getElementById("requestBox").style.display = "block";
+  }
+
+async function sendToKakao() {
+  const specialClean = document.getElementById("specialClean").checked;
+
+  const name = (document.getElementById("custName").value || "").trim();
+  const phone = (document.getElementById("custPhone").value || "").trim();
+  const addr = (document.getElementById("custAddr").value || "").trim();
+  const memo = (document.getElementById("custMemo").value || "").trim();
+
+  if (!name || !phone) {
+    alert("이름과 연락처는 필수 입력입니다.");
+    return;
+  }
+
+  /* ===============================
+     1️⃣ 고객 upsert (Supabase)
+     =============================== */
+  const { data: customerData, error: customerError } =
+    await supabaseClient
+      .from("customers")
+      .upsert(
+        {
+          name,
+          phone,
+          address: addr,
+          memo,
+        },
+        { onConflict: "phone" }
+      )
+      .select()
+      .single();
+console.log("customerData:", customerData);
+console.log("customerError:", customerError);
+  if (customerError) {
+    console.error(customerError);
+    alert("고객 저장 오류");
+    return;
+  }
+
+  /* ===============================
+     2️⃣ 주문 저장 (고객 연결)
+     =============================== */
+  const structure = document.getElementById("structure").value;
+  const supplyAreaInput = document.getElementById("supplyArea").value;
+const supplyArea = supplyAreaInput ? Number(supplyAreaInput) : null;
+  const totalPrice = document.getElementById("totalPriceText").textContent || "-";
+  const photoCountText = document.getElementById("photoCountText").textContent || "-";
+  const avgScoreText = document.getElementById("avgScoreText").textContent || "-";
+  const maxScoreText = document.getElementById("maxScoreText").textContent || "-";
+
+const { error } = await supabaseClient
+  .from("orders")
+  .insert([
+    {      
+      name,
+      phone,
+      address: addr,
+      memo,
+      structure,
+ supply_area: supplyArea === null ? null : supplyArea,
+     estimated_price:
+  totalPrice === "상담 후 결정"
+    ? null
+    : parseInt(totalPrice.replace(/[^0-9]/g, ""), 10),
+      photo_count:
+      photoCountText.includes("장")
+    ? Number(photoCountText.replace("장", ""))
+    : 0,
+      avg_score: avgScoreText === "-" ? null : parseInt(avgScoreText),
+      max_score: maxScoreText === "-" ? null : parseInt(maxScoreText),
+      special_clean: specialClean,
+      status: "접수됨"
+    }
+  ]);
+
+if (error) {
+  console.error(error);
+  alert("예약 저장 오류: " + error.message);
+  return;
+}
+
+
+alert("신청이 정상적으로 접수되었습니다.\n입금 확인 후 바로 배정됩니다.");
+document.getElementById("depositNotice").style.display = "block";
+
+  /* ===============================
+    3️⃣ 카카오 연결
+     =============================== */
+  const message =
+`[CleanMate 견적 신청]
+
+특수청소 요청: ${specialClean ? "있음 (상담 필요)" : "없음"}
+
+
+이름: ${name}
+연락처: ${phone}
+주소: ${addr || "(미입력)"}
+요청사항: ${memo || "(없음)"}
+
+구조/평수 ${structure} / ${supplyArea}평
+예상 총 견적${totalPrice}
+
+사진 정보 ${photoCountText}
+평균 오염도 ${avgScoreText}점 / 최대 ${maxScoreText}
+`;
+
+  const kakaoUrl = "https://open.kakao.com/o/sItc0P4h";
+
+  document.getElementById("matchingLoading").style.display = "flex";
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(message).catch(() => {});
+  }
+
+  setTimeout(() => {
+    document.getElementById("matchingLoading").style.display = "none";
+    window.open(kakaoUrl, "_blank");
+  }, 6000);
+}
+</script>
+<!-- ===============================
+     관리자 로그인 모달
+     =============================== -->
+<div id="adminModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  z-index:9999;
+">
+  <div style="
+    background:#fff;
+    max-width:360px;
+    margin:15% auto;
+    padding:24px;
+    border-radius:12px;
+  ">
+    <h3 style="text-align:center;margin-bottom:16px;">
+      CleanMate 관리자 로그인
+    </h3>
+
+<input id="adminEmail" type="text" placeholder="관리자 아이디"
+  style="width:100%;padding:10px;margin-bottom:10px;" />
+
+    <input id="adminPassword" type="password" placeholder="비밀번호"
+      style="width:100%;padding:10px;margin-bottom:16px;" />
+
+<button onclick="adminLogin()"
+  style="width:100%;padding:12px;background:#111;color:#fff;border:none;">
+  로그인
+</button>
+
+    <button onclick="closeAdminModal()"
+      style="width:100%;margin-top:8px;padding:10px;">
+      취소
+    </button>
+  </div>
+</div>
+
+<script>
+/* ===============================
+   관리자 진입 트리거 (푸터 5번 클릭)
+   =============================== */
+/* ===============================
+   업체 데이터 (관리자 전용)
+   =============================== */
+let companies = [
+  {
+    name: "환승클린",
+    desc: "클린메이트 검증 1호 청소업체",
+    rating: 5,
+    visible: true,
+    image: ""
+  }
+];
+
+/* ===============================
+   리뷰 데이터 (관리자 전용)
+   =============================== */
+let reviews = [
+  {
+    author: "김**",
+    text: "CleanMate 덕분에 처음 안내받은 가격 그대로 청소를 받아서 너무 만족했습니다.",
+    star: 5,
+    photo: "",
+    visible: true
+  }
+];
+
+let adminClickCount = 0;
+let adminClickTimer = null;
+
+document.querySelector("footer").addEventListener("click", () => {
+  adminClickCount++;
+
+  if (adminClickCount === 1) {
+    adminClickTimer = setTimeout(() => {
+      adminClickCount = 0;
+    }, 5000);
+  }
+
+  if (adminClickCount === 5) {
+    clearTimeout(adminClickTimer);
+    adminClickCount = 0;
+    document.getElementById("adminModal").style.display = "block";
+  }
+});
+
+/* ===============================
+   관리자 로그인 (하드코딩 방식)
+   =============================== */
+function adminLogin() {
+  const email = document.getElementById("adminEmail").value;
+  const password = document.getElementById("adminPassword").value;
+
+  if (email === "clean8904" && password === "cksaldPtn8904!") {
+    openAdminDashboard();
+  } else {
+    alert("관리자 로그인 실패");
+  }
+}
+
+function closeAdminModal() {
+  document.getElementById("adminModal").style.display = "none";
+}
+
+/* ===============================
+   관리자 대시보드 제어
+   =============================== */
+function openAdminDashboard() {
+  document.getElementById("adminModal").style.display = "none";
+  document.getElementById("adminDashboard").style.display = "block";
+  showAdminTab("reviews"); // 기본으로 리뷰 탭 열기
+}
+
+function closeAdminDashboard() {
+  document.getElementById("adminDashboard").style.display = "none";
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+  // 1️⃣ 입금확인 눌렀을 때 → 환승클린 자동 배정
+  if (newStatus === "입금확인") {
+    const { error } = await supabaseClient
+      .from("orders")
+      .update({
+        status: "배정완료",
+        company_name: "환승클린",
+        assigned_at: new Date().toISOString()
+      })
+      .eq("id", orderId);
+
+    if (error) {
+      alert("배정 처리 실패");
+      console.error(error);
+      return;
+    }
+
+    alert("입금 확인 완료\n클린으로 자동 배정되었습니다.");
+    loadOrders();
+    return;
+  }
+
+  // 2️⃣ 그 외 상태 변경 (예: 수동 배정완료)
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({ status: newStatus })
+    .eq("id", orderId);
+
+  if (error) {
+    alert("상태 변경 실패");
+    console.error(error);
+    return;
+  }
+
+  loadOrders();
+}
+async function loadOrders() {
+  const list = document.getElementById("orderList");
+  if (!list) return;
+
+  list.innerHTML = "불러오는 중...";
+
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    list.innerHTML = "예약 데이터를 불러오지 못했습니다.";
+    console.error(error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    list.innerHTML = "예약 내역이 없습니다.";
+    return;
+  }
+
+  list.innerHTML = data.map(order => `
+    <div style="
+      background:#fff;
+      border-radius:12px;
+      padding:14px;
+      margin-bottom:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+      font-size:13px;
+    ">
+      <div style="font-weight:700;">
+        ${order.name} (${order.phone})
+      </div>
+
+      <div style="margin-top:6px;color:#555;">
+        주소: ${order.address || "-"}<br>
+        구조/평수: ${order.structure || "-"} / ${order.supply_area ?? "-"}평<br>
+        예상금액:
+        ${
+          order.estimated_price
+            ? order.estimated_price.toLocaleString("ko-KR") + "원"
+            : "상담 후 결정"
+        }<br>
+        상태: <b>${order.status}</b>
+${order.company_name ? `<br>배정업체: <b>${order.company_name}</b>` : ""}
+${renderStatusFlow(order.status)}
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:6px;">
+        ${renderNextActionButtons(order)}
+      </div>
+
+      <div style="margin-top:6px;font-size:11px;color:#888;">
+        접수일: ${new Date(order.created_at).toLocaleString("ko-KR")}
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderNextActionButtons(order) {
+  if (order.status === "접수됨") {
+    return `
+      <button onclick="updateOrderStatus('${order.id}', '입금확인')">
+        💰 입금확인
+      </button>
+    `;
+  }
+
+  if (order.status === "배정중") {
+    return `
+      <button onclick="updateOrderStatus('${order.id}', '배정완료')">
+        ✅ 배정완료
+      </button>
+    `;
+  }
+
+  return "";
+}
+
+function showAdminTab(tab) {
+  const box = document.getElementById("adminContent");
+  /* ===============================
+     고객 관리
+     =============================== */
+  if (tab === "customers") {
+    box.innerHTML = `
+      <h3>👤 고객 관리</h3>
+      <div id="customerList" style="margin-top:16px;"></div>
+    `;
+    renderCustomers();
+    return;
+  }
+
+  /* ===============================
+     예약 관리
+     =============================== */
+  if (tab === "orders") {
+    box.innerHTML = `
+      <h3>📋 예약 관리</h3>
+      <div id="orderList" style="margin-top:16px;"></div>
+    `;
+    loadOrders();
+    return;
+  }
+
+  /* ===============================
+     업체 관리
+     =============================== */
+  if (tab === "companies") {
+    box.innerHTML = `
+      <h3>🏢 업체 관리</h3>
+
+      <div style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:8px;">
+        <h4>업체 추가</h4>
+
+        <input id="companyName" placeholder="업체명"
+          style="width:100%;padding:8px;margin-bottom:6px;" />
+
+        <input id="companyDesc" placeholder="간단 소개글"
+          style="width:100%;padding:8px;margin-bottom:6px;" />
+
+        <input id="companyImage" placeholder="대표 이미지 URL (선택)"
+          style="width:100%;padding:8px;margin-bottom:6px;" />
+
+        <button onclick="addCompany()">업체 추가</button>
+      </div>
+
+      <div id="companyList" style="margin-top:16px;"></div>
+    `;
+    renderCompanies();
+    return;
+  }
+
+  /* ===============================
+     리뷰 관리
+     =============================== */
+  if (tab === "reviews") {
+    box.innerHTML = `
+      <h3>⭐ 리뷰 관리</h3>
+
+      <div style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:8px;">
+        <h4>리뷰 추가</h4>
+
+        <input id="reviewAuthor" placeholder="작성자"
+          style="width:100%;padding:8px;margin-bottom:6px;" />
+
+        <textarea id="reviewText" placeholder="리뷰 내용"
+          style="width:100%;padding:8px;height:80px;margin-bottom:6px;"></textarea>
+
+        <select id="reviewStar" style="width:100%;padding:8px;margin-bottom:6px;">
+          <option value="5">★★★★★</option>
+          <option value="4">★★★★☆</option>
+          <option value="3">★★★☆☆</option>
+        </select>
+
+        <input id="reviewPhoto" placeholder="사진 URL (선택)"
+          style="width:100%;padding:8px;margin-bottom:6px;" />
+
+        <button onclick="addReview()">리뷰 추가</button>
+      </div>
+
+      <div id="reviewList" style="margin-top:16px;"></div>
+    `;
+    renderReviews();
+    return;
+  }
+}
+
+function renderReviews() {
+  const list = document.getElementById("reviewList");
+  if (!list) return;
+
+  list.innerHTML = reviews.map((r, i) => `
+    <div style="border-bottom:1px solid #eee;padding:10px 0;">
+      <strong>${"★".repeat(r.star)}</strong><br/>
+      <b>${r.author}</b><br/>
+      <div style="font-size:13px;">${r.text}</div>
+      ${r.photo ? `<img src="${r.photo}" style="max-width:120px;margin-top:6px;">` : ""}
+      <div style="margin-top:6px;">
+        <button onclick="toggleReview(${i})">
+          ${r.visible ? "노출중" : "비노출"}
+        </button>
+        <button onclick="deleteReview(${i})">삭제</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function addReview() {
+  const author = document.getElementById("reviewAuthor").value;
+  const text = document.getElementById("reviewText").value;
+  const star = parseInt(document.getElementById("reviewStar").value, 10);
+  const photo = document.getElementById("reviewPhoto").value;
+
+  if (!author || !text) {
+    alert("작성자와 리뷰 내용은 필수입니다.");
+    return;
+  }
+
+  reviews.unshift({
+    author,
+    text,
+    star,
+    photo,
+    visible: true
+  });
+
+  renderReviews();
+}
+
+function toggleReview(i) {
+  reviews[i].visible = !reviews[i].visible;
+  renderReviews();
+  renderPublicReviews();
+}
+
+function deleteReview(i) {
+  if (confirm("이 리뷰를 삭제할까요?")) {
+    reviews.splice(i, 1);
+    renderReviews();
+    renderPublicReviews();
+  }
+}
+/* ===============================
+   고객 화면 리뷰 렌더링
+   =============================== */
+function renderPublicReviews() {
+  const box = document.getElementById("publicReviewList");
+  if (!box) return;
+
+  box.innerHTML = reviews
+    .filter(r => r.visible)
+    .map(r => `
+      <div style="
+        background:#fff;
+        border-radius:16px;
+        padding:14px;
+        box-shadow:0 6px 18px rgba(0,0,0,0.06);
+        font-size:13px;
+      ">
+        <div style="color:#f5a623;font-size:14px;">
+          ${"★".repeat(r.star)}
+        </div>
+        <div style="margin:6px 0;font-weight:600;">
+          ${r.author}
+        </div>
+        <div style="color:#4b5665;line-height:1.4;">
+          ${r.text}
+        </div>
+        ${
+          r.photo
+            ? `<img src="${r.photo}"
+                style="width:100%;margin-top:8px;border-radius:10px;">`
+            : ""
+        }
+        <div style="margin-top:8px;font-size:11px;color:#8a94a6;">
+          CleanMate 이용 고객
+        </div>
+      </div>
+    `)
+    .join("");
+}
+document.addEventListener("DOMContentLoaded", () => {
+  renderPublicReviews();
+});
+
+function renderCompanies() {
+  const list = document.getElementById("companyList");
+  if (!list) return;
+
+  list.innerHTML = companies.map((c, i) => `
+    <div style="border-bottom:1px solid #eee;padding:10px 0;">
+      <b>${c.name}</b>
+<span style="
+  margin-left:6px;
+  font-size:11px;
+  padding:2px 8px;
+  border-radius:999px;
+  background:${c.visible ? "#e3f2fd" : "#fbe9e7"};
+  color:${c.visible ? "#1565c0" : "#c62828"};
+">
+  ${c.visible ? "노출중" : "비노출"}
+</span><br/>
+      <div style="font-size:13px;color:#555;">${c.desc}</div>
+
+      <div style="margin-top:6px;">
+        <button onclick="toggleCompany(${i})">
+          ${c.visible ? "노출중" : "비노출"}
+        </button>
+        <button onclick="deleteCompany(${i})">삭제</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function addCompany() {
+  const name = document.getElementById("companyName").value;
+  const desc = document.getElementById("companyDesc").value;
+  const image = document.getElementById("companyImage").value;
+
+  if (!name || !desc) {
+    alert("업체명과 소개글은 필수입니다.");
+    return;
+  }
+
+  companies.unshift({
+    name,
+    desc,
+    rating: 5,
+    visible: true,
+    image
+  });
+
+  renderCompanies();
+}
+
+function toggleCompany(i) {
+  companies[i].visible = !companies[i].visible;
+  renderCompanies();
+}
+function renderCustomers() {
+  const list = document.getElementById("customerList");
+  if (!list) return;
+
+  list.innerHTML = customers.map((c, i) => `
+    <div style="
+      background:#fff;
+      border-radius:12px;
+      padding:14px;
+      margin-bottom:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    ">
+      <div style="font-weight:700;">
+        ${c.name}
+        <span style="color:#666;font-size:12px;">
+          (${c.phone})
+        </span>
+      </div>
+
+      <div style="font-size:13px;color:#555;margin-top:4px;">
+        주소: ${c.address}<br>
+        이용 횟수: <b>${c.count}회</b>
+      </div>
+
+<textarea
+  style="
+    width:100%;
+    margin-top:8px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    padding:8px;
+    font-size:12px;
+  "
+  placeholder="관리자 메모"
+  onchange="customers[${i}].memo = this.value"
+>${c.memo}</textarea>
+
+<button
+  style="
+    margin-top:8px;
+    padding:6px 10px;
+    border:1px solid #ddd;
+    border-radius:6px;
+    background:#fff;
+    cursor:pointer;
+    font-size:12px;
+  "
+  onclick="deleteCustomer(${i})"
+>
+  🗑 고객 삭제
+</button>
+    </div>
+  `).join("");
+}
+function deleteCustomer(i) {
+  if (confirm("이 고객 정보를 삭제할까요?")) {
+    customers.splice(i, 1);
+    renderCustomers();
+  }
+}
+function deleteCompany(i) {
+  if (confirm("이 업체를 삭제할까요?")) {
+    companies.splice(i, 1);
+    renderCompanies();
+  }
+}
+</script>
+
+<!-- 매칭 로딩 화면 -->
+<div id="matchingLoading" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:16px;
+  text-align:center;
+">
+  <div style="
+    background:#111;
+    padding:24px 32px;
+    border-radius:12px;
+  ">
+    고객님께 맞는 우수업체를<br>
+    5~10분 이내에 선정 중입니다.<br><br>
+    잠시만 기다려주세요.
+  </div>
+</div>
+
+</body>
+</html>
 
