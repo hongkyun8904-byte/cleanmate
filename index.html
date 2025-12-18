@@ -1424,20 +1424,17 @@ async function sendToKakao() {
   /* ===============================
      1️⃣ 고객 upsert (Supabase)
      =============================== */
-  const { data: customerData, error: customerError } =
-    await supabaseClient
-      .from("customers")
-      .upsert(
-        {
-          name,
-          phone,
-          address: addr,
-          memo,
-        },
-        { onConflict: "phone" }
-      )
-      .select()
-      .single();
+const { data: customerData, error: customerError } =
+  await supabaseClient
+    .from("customers")
+    .insert({
+      name,
+      phone,
+      address: addr,
+      memo,
+    })
+    .select()
+    .single();
 console.log("customerData:", customerData);
 console.log("customerError:", customerError);
   if (customerError) {
@@ -2098,5 +2095,6 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
