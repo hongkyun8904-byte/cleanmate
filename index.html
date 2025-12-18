@@ -1441,7 +1441,7 @@ async function sendToKakao() {
 console.log("customerData:", customerData);
 console.log("customerError:", customerError);
   if (customerError) {
-    console.error(customerError);
+alert(JSON.stringify(customerError, null, 2));
     alert("고객 저장 오류");
     return;
   }
@@ -2098,4 +2098,5 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
