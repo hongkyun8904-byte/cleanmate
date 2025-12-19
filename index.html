@@ -1654,16 +1654,14 @@ function closeAdminDashboard() {
    =============================== */
 
 async function updateOrderStatus(orderId, newStatus) {
-  let updateData = { status: newStatus };
+  let updateData = {};
 
-  // 💰 입금확인 → 배정중
+  // 💰 입금확인 = 즉시 배정완료 + 업체 지정
   if (newStatus === "입금확인") {
-    updateData.status = "배정중";
-  }
-
-  // ✅ 배정완료 → 업체 확정
-  if (newStatus === "배정완료") {
+    updateData.status = "배정완료";
     updateData.assigned_company = "환승클린";
+  } else {
+    updateData.status = newStatus;
   }
 
   const { error } = await supabaseClient
@@ -2215,6 +2213,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
