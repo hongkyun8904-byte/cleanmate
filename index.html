@@ -1596,43 +1596,6 @@ let reviews = [
     visible: true
   }
 ];
-let adminClickCount = 0;
-let adminClickTimer = null;
-
-document.querySelector("footer").addEventListener("click", () => {
-  adminClickCount++;
-
-  if (adminClickCount === 1) {
-    adminClickTimer = setTimeout(() => {
-      adminClickCount = 0;
-    }, 5000);
-  }
-
-  if (adminClickCount === 5) {
-    clearTimeout(adminClickTimer);
-    adminClickCount = 0;
-    document.getElementById("adminModal").style.display = "block";
-  }
-});
-let adminClickCount = 0;
-let adminClickTimer = null;
-let orderAutoRefreshTimer = null;
-
-document.querySelector("footer").addEventListener("click", () => {
-  adminClickCount++;
-
-  if (adminClickCount === 1) {
-    adminClickTimer = setTimeout(() => {
-      adminClickCount = 0;
-    }, 5000);
-  }
-
-  if (adminClickCount === 5) {
-    clearTimeout(adminClickTimer);
-    adminClickCount = 0;
-    document.getElementById("adminModal").style.display = "block";
-  }
-});
 
 /* ===============================
    관리자 로그인 (하드코딩 방식)
@@ -2226,8 +2189,35 @@ function deleteCompany(i) {
     잠시만 기다려주세요.
   </div>
 </div>
+  <script>
+let adminClickCount = 0;
+let adminClickTimer = null;
+let orderAutoRefreshTimer = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  const footer = document.querySelector("footer");
+  if (!footer) return;
+
+  footer.addEventListener("click", () => {
+    adminClickCount++;
+
+    if (adminClickCount === 1) {
+      adminClickTimer = setTimeout(() => {
+        adminClickCount = 0;
+      }, 5000);
+    }
+
+    if (adminClickCount === 5) {
+      clearTimeout(adminClickTimer);
+      adminClickCount = 0;
+      document.getElementById("adminModal").style.display = "block";
+    }
+  });
+});
+</script>
 </body>
 </html>
+
 
 
 
