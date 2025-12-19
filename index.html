@@ -1200,8 +1200,6 @@
 <script>
 const ORDER_STEPS = [
   "접수됨",
-  "입금확인",
-  "배정중",
   "배정완료",
   "반려됨"
 ];
@@ -1652,11 +1650,31 @@ function closeAdminDashboard() {
 /* ===============================
    관리자 주문 관리 (핵심)
    =============================== */
+  async function loadCustomers() {
+  const { data, error } = await supabaseClient
+    .from("customers")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-async function updateOrderStatus(orderId, newStatus) {
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  customers = data.map(c => ({
+    id: c.id,
+    name: c.name,
+    phone: c.phone,
+    address: c.address,
+    memo: c.memo || "",
+    count: 0
+  }));
+
+  renderCustomers();
+}
+  async function updateOrderStatus(orderId, newStatus) {
   let updateData = {};
 
-  // 💰 입금확인 = 즉시 배정완료 + 업체 지정
   if (newStatus === "입금확인") {
     updateData.status = "배정완료";
     updateData.assigned_company = "환승클린";
@@ -1664,6 +1682,67 @@ async function updateOrderStatus(orderId, newStatus) {
     updateData.status = newStatus;
   }
 
+  const { error } = await supabaseClient
+    .from("orders")
+    .update(updateData)
+    .eq("id", orderId);
+
+  if (error) {
+    alert("상태 변경 실패");
+    console.error(error);
+    return;
+  }
+
+  loadOrders();
+}
+  function renderNextActionButtons(order) {
+
+  if (order.status === "반려됨") {
+    return `
+      <span style="font-size:12px;color:#c62828;font-weight:600;">
+        고객 반려됨
+      </span>
+      <button
+        style="margin-left:6px;color:#c62828;"
+        onclick="deleteOrder('${order.id}')"
+      >
+        ❌ 삭제
+      </button>
+    `;
+  }
+
+  let buttons = "";
+
+  if (order.status === "접수됨") {
+    buttons += `
+      <button onclick="updateOrderStatus('${order.id}', '입금확인')">
+        💰 입금확인
+      </button>
+      <button onclick="rejectOrder('${order.id}')">
+        ↩ 고객반려
+      </button>
+    `;
+  }
+
+  if (order.status === "배정중") {
+    buttons += `
+      <button onclick="updateOrderStatus('${order.id}', '배정완료')">
+        ✅ 배정완료
+      </button>
+    `;
+  }
+
+  buttons += `
+    <button
+      style="color:#c62828;"
+      onclick="deleteOrder('${order.id}')"
+    >
+      ❌ 삭제
+    </button>
+  `;
+
+  return buttons;
+}
   async function rejectOrder(orderId) {
   const reason = prompt(
     "반려 사유를 입력하세요.\n예: 전화번호 오류 / 주소 불명확"
@@ -1778,58 +1857,6 @@ async function loadOrders() {
 `).join("");
 }
 
-function renderNextActionButtons(order) {
-
-  // 🔴 반려된 주문
-  if (order.status === "반려됨") {
-    return `
-      <span style="font-size:12px;color:#c62828;font-weight:600;">
-        고객 반려됨
-      </span>
-      <button
-        style="margin-left:6px;color:#c62828;"
-        onclick="deleteOrder('${order.id}')"
-      >
-        ❌ 삭제
-      </button>
-    `;
-  }
-
-  let buttons = "";
-
-  // 🟢 접수 단계
-  if (order.status === "접수됨") {
-    buttons += `
-      <button onclick="updateOrderStatus('${order.id}', '입금확인')">
-  💰 입금확인
-</button>
-      <button onclick="rejectOrder('${order.id}')">
-        ↩ 고객반려
-      </button>
-    `;
-  }
-
-  // 🟡 배정중
-  if (order.status === "배정중") {
-    buttons += `
-      <button onclick="updateOrderStatus('${order.id}', '배정완료')">
-        ✅ 배정완료
-      </button>
-    `;
-  }
-
-  // ❌ 모든 상태에서 삭제 가능
-  buttons += `
-    <button
-      style="color:#c62828;"
-      onclick="deleteOrder('${order.id}')"
-    >
-      ❌ 삭제
-    </button>
-  `;
-
-  return buttons;
-}
 
 function showAdminTab(tab) {
   const box = document.getElementById("adminContent");
@@ -1841,15 +1868,15 @@ function showAdminTab(tab) {
   /* ===============================
      고객 관리
      =============================== */
-  if (tab === "customers") {
-    box.innerHTML = `
-      <h3>👤 고객 관리</h3>
-      <div id="customerList" style="margin-top:16px;"></div>
-    `;
-    renderCustomers();
-    return;
-  }
+ if (tab === "customers") {
+  box.innerHTML = `
+    <h3>👤 고객 관리</h3>
+    <div id="customerList" style="margin-top:16px;"></div>
+  `;
 
+  loadCustomers();
+  return;
+}
   /* ===============================
      예약 관리
      =============================== */
@@ -2201,6 +2228,7 @@ function deleteCompany(i) {
 </button>
 </body>
 </html>
+
 
 
 
