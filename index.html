@@ -1531,6 +1531,34 @@ setTimeout(() => {
 <!-- ===============================
      관리자 로그인 모달
      =============================== -->
+  <script>
+let adminClickCount = 0;
+let adminClickTimer = null;
+
+window.addEventListener("load", () => {
+  const footer = document.getElementsByTagName("footer")[0];
+  if (!footer) {
+    alert("footer 못 찾음");
+    return;
+  }
+
+  footer.onclick = () => {
+    adminClickCount++;
+
+    if (adminClickCount === 1) {
+      adminClickTimer = setTimeout(() => {
+        adminClickCount = 0;
+      }, 5000);
+    }
+
+    if (adminClickCount === 5) {
+      clearTimeout(adminClickTimer);
+      adminClickCount = 0;
+      document.getElementById("adminModal").style.display = "block";
+    }
+  };
+});
+</script>
 <div id="adminModal" style="
   display:none;
   position:fixed;
@@ -2189,34 +2217,9 @@ function deleteCompany(i) {
     잠시만 기다려주세요.
   </div>
 </div>
-  <script>
-let adminClickCount = 0;
-let adminClickTimer = null;
-let orderAutoRefreshTimer = null;
-
-document.addEventListener("DOMContentLoaded", () => {
-  const footer = document.querySelector("footer");
-  if (!footer) return;
-
-  footer.addEventListener("click", () => {
-    adminClickCount++;
-
-    if (adminClickCount === 1) {
-      adminClickTimer = setTimeout(() => {
-        adminClickCount = 0;
-      }, 5000);
-    }
-
-    if (adminClickCount === 5) {
-      clearTimeout(adminClickTimer);
-      adminClickCount = 0;
-      document.getElementById("adminModal").style.display = "block";
-    }
-  });
-});
-</script>
 </body>
 </html>
+
 
 
 
