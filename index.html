@@ -1514,9 +1514,11 @@ document.getElementById("depositNotice").style.display = "block";
 
   document.getElementById("matchingLoading").style.display = "flex";
 
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(message).catch(() => {});
-  }
+alert("신청이 정상적으로 접수되었습니다.\n카카오톡 상담창이 열립니다.");
+
+setTimeout(() => {
+  window.open("https://open.kakao.com/o/sItc0P4h", "_blank");
+}, 300);
 
   setTimeout(() => {
     document.getElementById("matchingLoading").style.display = "none";
@@ -2095,6 +2097,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
