@@ -1678,20 +1678,6 @@ async function updateOrderStatus(orderId, newStatus) {
   loadOrders();
 }
 
-  const { error } = await supabaseClient
-    .from("orders")
-    .update(updateData)
-    .eq("id", orderId);
-
-  if (error) {
-    alert("배정처리 실패");
-    console.error(error);
-    return;
-  }
-
-  loadOrders();
-}
-
 async function rejectOrder(orderId) {
   const reason = prompt(
     "반려 사유를 입력하세요.\n예: 전화번호 오류 / 주소 불명확"
@@ -2213,6 +2199,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
