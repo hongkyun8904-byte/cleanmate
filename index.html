@@ -1656,13 +1656,13 @@ function closeAdminDashboard() {
 async function updateOrderStatus(orderId, newStatus) {
   let updateData = { status: newStatus };
 
-  // 💰 입금확인 → 자동 업체 배정
- async function updateOrderStatus(orderId, newStatus) {
-  let updateData = { status: newStatus };
-
-  // 💰 입금확인 시 → 자동 배정
+  // 💰 입금확인 → 배정중
   if (newStatus === "입금확인") {
-    updateData.status = "배정완료";
+    updateData.status = "배정중";
+  }
+
+  // ✅ 배정완료 → 업체 확정
+  if (newStatus === "배정완료") {
     updateData.assigned_company = "환승클린";
   }
 
@@ -2215,6 +2215,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
