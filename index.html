@@ -1649,9 +1649,11 @@ function openAdminDashboard() {
 function closeAdminDashboard() {
   document.getElementById("adminDashboard").style.display = "none";
 }
+/* ===============================
+   관리자 주문 관리 (핵심)
+   =============================== */
 
 async function updateOrderStatus(orderId, newStatus) {
-  // 1️⃣ 입금확인 눌렀을 때 → 환승클린 자동 배정
   if (newStatus === "입금확인") {
     const { error } = await supabaseClient
       .from("orders")
@@ -1668,12 +1670,10 @@ async function updateOrderStatus(orderId, newStatus) {
       return;
     }
 
-    alert("입금 확인 완료\n클린으로 자동 배정되었습니다.");
     loadOrders();
     return;
   }
 
-  // 2️⃣ 그 외 상태 변경 (예: 수동 배정완료)
   const { error } = await supabaseClient
     .from("orders")
     .update({ status: newStatus })
@@ -1685,25 +1685,6 @@ async function updateOrderStatus(orderId, newStatus) {
     return;
   }
 
-  loadOrders();
-}
-  async function deleteOrder(orderId) {
-  if (!confirm("이 예약을 완전히 삭제할까요?\n(되돌릴 수 없습니다)")) {
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("orders")
-    .delete()
-    .eq("id", orderId);
-
-  if (error) {
-    alert("삭제 실패");
-    console.error(error);
-    return;
-  }
-
-  alert("예약이 삭제되었습니다.");
   loadOrders();
 }
 
@@ -1728,9 +1709,9 @@ async function rejectOrder(orderId) {
     return;
   }
 
-  alert("고객 반려 처리되었습니다.");
   loadOrders();
 }
+
 async function deleteOrder(orderId) {
   if (!confirm("이 예약을 완전히 삭제할까요?\n(되돌릴 수 없습니다)")) {
     return;
@@ -1747,9 +1728,9 @@ async function deleteOrder(orderId) {
     return;
   }
 
-  alert("예약이 삭제되었습니다.");
   loadOrders();
-}  
+}
+
 async function loadOrders() {
   const list = document.getElementById("orderList");
   if (!list) return;
@@ -1773,41 +1754,52 @@ async function loadOrders() {
   }
 
   list.innerHTML = data.map(order => `
-    <div style="
-      background:#fff;
-      border-radius:12px;
-      padding:14px;
-      margin-bottom:12px;
-      box-shadow:0 6px 18px rgba(0,0,0,0.06);
-      font-size:13px;
-    ">
-      <div style="font-weight:700;">
-        ${order.name} (${order.phone})
-      </div>
-
-      <div style="margin-top:6px;color:#555;">
-        주소: ${order.address || "-"}<br>
-        구조/평수: ${order.structure || "-"} / ${order.supply_area ?? "-"}평<br>
-        예상금액:
-        ${
-          order.estimated_price
-            ? order.estimated_price.toLocaleString("ko-KR") + "원"
-            : "상담 후 결정"
-        }<br>
-        상태: <b>${order.status}</b>
-${order.company_name ? `<br>배정업체: <b>${order.company_name}</b>` : ""}
-${renderStatusFlow(order.status)}
-      </div>
-
-      <div style="margin-top:10px;display:flex;gap:6px;">
-        ${renderNextActionButtons(order)}
-      </div>
-
-      <div style="margin-top:6px;font-size:11px;color:#888;">
-        접수일: ${new Date(order.created_at).toLocaleString("ko-KR")}
-      </div>
+  <div style="
+    background:#fff;
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:12px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    font-size:13px;
+  ">
+    <div style="font-weight:700;">
+      ${order.name} (${order.phone})
     </div>
-  `).join("");
+
+    <div style="margin-top:6px;color:#555;">
+      주소: ${order.address || "-"}<br>
+      구조/평수: ${order.structure || "-"} / ${order.supply_area ?? "-"}평<br>
+      상태: <b>${order.status}</b>
+      ${renderStatusFlow(order.status)}
+    </div>
+
+    ${
+      order.status === "반려됨" && order.memo
+        ? `
+        <div style="
+          margin-top:8px;
+          padding:8px;
+          border-radius:8px;
+          background:#fdecea;
+          color:#c62828;
+          font-size:12px;
+          font-weight:600;
+        ">
+          📌 반려 사유: ${order.memo}
+        </div>
+        `
+        : ""
+    }
+
+    <div style="margin-top:10px;">
+      ${renderNextActionButtons(order)}
+    </div>
+
+    <div style="margin-top:6px;font-size:11px;color:#888;">
+      접수일: ${new Date(order.created_at).toLocaleString("ko-KR")}
+    </div>
+  </div>
+`).join("");
 }
 
 function renderNextActionButtons(order) {
@@ -2217,6 +2209,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
