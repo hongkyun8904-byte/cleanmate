@@ -1654,21 +1654,13 @@ function closeAdminDashboard() {
    =============================== */
 
 async function updateOrderStatus(orderId, newStatus) {
-  const updateData = { status: newStatus };
-
-  // 배정완료일 때만 업체 정보 추가
-  if (newStatus === "배정완료") {
-    updateData.company_name = "환승클린";
-    updateData.assigned_at = new Date().toISOString();
-  }
-
   const { error } = await supabaseClient
     .from("orders")
-    .update(updateData)
+    .update({ status: newStatus })
     .eq("id", orderId);
 
   if (error) {
-    alert("상태 변경 실패");
+    alert("배정처리 실패");
     console.error(error);
     return;
   }
@@ -2197,6 +2189,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
