@@ -1203,6 +1203,7 @@ const ORDER_STEPS = [
   "입금확인",
   "배정중",
   "배정완료"
+  "반려됨"
 ];
 
 let customers = [];
@@ -1686,6 +1687,25 @@ async function updateOrderStatus(orderId, newStatus) {
 
   loadOrders();
 }
+async function deleteOrder(orderId) {
+  if (!confirm("이 예약을 완전히 삭제할까요?\n(되돌릴 수 없습니다)")) {
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .delete()
+    .eq("id", orderId);
+
+  if (error) {
+    alert("삭제 실패");
+    console.error(error);
+    return;
+  }
+
+  alert("예약이 삭제되었습니다.");
+  loadOrders();
+}  
 async function loadOrders() {
   const list = document.getElementById("orderList");
   if (!list) return;
@@ -2120,6 +2140,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
