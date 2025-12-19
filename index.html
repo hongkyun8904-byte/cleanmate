@@ -1202,7 +1202,7 @@ const ORDER_STEPS = [
   "접수됨",
   "입금확인",
   "배정중",
-  "배정완료"
+  "배정완료",
   "반려됨"
 ];
 
@@ -1687,6 +1687,50 @@ async function updateOrderStatus(orderId, newStatus) {
 
   loadOrders();
 }
+  async function deleteOrder(orderId) {
+  if (!confirm("이 예약을 완전히 삭제할까요?\n(되돌릴 수 없습니다)")) {
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .delete()
+    .eq("id", orderId);
+
+  if (error) {
+    alert("삭제 실패");
+    console.error(error);
+    return;
+  }
+
+  alert("예약이 삭제되었습니다.");
+  loadOrders();
+}
+
+async function rejectOrder(orderId) {
+  const reason = prompt(
+    "반려 사유를 입력하세요.\n예: 전화번호 오류 / 주소 불명확"
+  );
+
+  if (!reason) return;
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({
+      status: "반려됨",
+      memo: reason
+    })
+    .eq("id", orderId);
+
+  if (error) {
+    alert("반려 처리 실패");
+    console.error(error);
+    return;
+  }
+
+  alert("고객 반려 처리되었습니다.");
+  loadOrders();
+}
 async function deleteOrder(orderId) {
   if (!confirm("이 예약을 완전히 삭제할까요?\n(되돌릴 수 없습니다)")) {
     return;
@@ -1767,23 +1811,56 @@ ${renderStatusFlow(order.status)}
 }
 
 function renderNextActionButtons(order) {
-  if (order.status === "접수됨") {
+
+  // 🔴 반려된 주문
+  if (order.status === "반려됨") {
     return `
-      <button onclick="updateOrderStatus('${order.id}', '입금확인')">
-        💰 입금확인
+      <span style="font-size:12px;color:#c62828;font-weight:600;">
+        고객 반려됨
+      </span>
+      <button
+        style="margin-left:6px;color:#c62828;"
+        onclick="deleteOrder('${order.id}')"
+      >
+        ❌ 삭제
       </button>
     `;
   }
 
+  let buttons = "";
+
+  // 🟢 접수 단계
+  if (order.status === "접수됨") {
+    buttons += `
+      <button onclick="updateOrderStatus('${order.id}', '입금확인')">
+        💰 입금확인
+      </button>
+      <button onclick="rejectOrder('${order.id}')">
+        ↩ 고객반려
+      </button>
+    `;
+  }
+
+  // 🟡 배정중
   if (order.status === "배정중") {
-    return `
+    buttons += `
       <button onclick="updateOrderStatus('${order.id}', '배정완료')">
         ✅ 배정완료
       </button>
     `;
   }
 
-  return "";
+  // ❌ 모든 상태에서 삭제 가능
+  buttons += `
+    <button
+      style="color:#c62828;"
+      onclick="deleteOrder('${order.id}')"
+    >
+      ❌ 삭제
+    </button>
+  `;
+
+  return buttons;
 }
 
 function showAdminTab(tab) {
@@ -2140,6 +2217,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
