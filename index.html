@@ -1654,9 +1654,16 @@ function closeAdminDashboard() {
    =============================== */
 
 async function updateOrderStatus(orderId, newStatus) {
+  let updateData = { status: newStatus };
+
+  // 💰 입금확인 → 자동 업체 배정
+  if (newStatus === "배정완료") {
+    updateData.assigned_company = "환승클린";
+  }
+
   const { error } = await supabaseClient
     .from("orders")
-    .update({ status: newStatus })
+    .update(updateData)
     .eq("id", orderId);
 
   if (error) {
@@ -1750,6 +1757,7 @@ async function loadOrders() {
       주소: ${order.address || "-"}<br>
       구조/평수: ${order.structure || "-"} / ${order.supply_area ?? "-"}평<br>
       상태: <b>${order.status}</b>
+      ${order.assigned_company ? `배정업체: <b>${order.assigned_company}</b><br>` : ""}
       ${renderStatusFlow(order.status)}
     </div>
 
@@ -2189,6 +2197,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
