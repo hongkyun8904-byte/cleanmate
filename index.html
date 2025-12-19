@@ -1654,29 +1654,17 @@ function closeAdminDashboard() {
    =============================== */
 
 async function updateOrderStatus(orderId, newStatus) {
-  if (newStatus === "입금확인") {
-    const { error } = await supabaseClient
-      .from("orders")
-      .update({
-        status: "배정완료",
-        company_name: "환승클린",
-        assigned_at: new Date().toISOString()
-      })
-      .eq("id", orderId);
+  const updateData = { status: newStatus };
 
-    if (error) {
-      alert("배정 처리 실패");
-      console.error(error);
-      return;
-    }
-
-    loadOrders();
-    return;
+  // 배정완료일 때만 업체 정보 추가
+  if (newStatus === "배정완료") {
+    updateData.company_name = "환승클린";
+    updateData.assigned_at = new Date().toISOString();
   }
 
   const { error } = await supabaseClient
     .from("orders")
-    .update({ status: newStatus })
+    .update(updateData)
     .eq("id", orderId);
 
   if (error) {
@@ -1824,9 +1812,9 @@ function renderNextActionButtons(order) {
   // 🟢 접수 단계
   if (order.status === "접수됨") {
     buttons += `
-      <button onclick="updateOrderStatus('${order.id}', '입금확인')">
-        💰 입금확인
-      </button>
+      <button onclick="updateOrderStatus('${order.id}', '배정완료')">
+  💰 입금확인
+</button>
       <button onclick="rejectOrder('${order.id}')">
         ↩ 고객반려
       </button>
@@ -2209,6 +2197,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
