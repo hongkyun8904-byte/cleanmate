@@ -1600,6 +1600,7 @@ let reviews = [
 
 let adminClickCount = 0;
 let adminClickTimer = null;
+let orderAutoRefreshTimer = null;
 
 document.querySelector("footer").addEventListener("click", () => {
   adminClickCount++;
@@ -1767,6 +1768,11 @@ function renderNextActionButtons(order) {
 
 function showAdminTab(tab) {
   const box = document.getElementById("adminContent");
+    // 예약 관리 탭이 아니면 자동 새로고침 중지
+  if (tab !== "orders" && orderAutoRefreshTimer) {
+    clearInterval(orderAutoRefreshTimer);
+    orderAutoRefreshTimer = null;
+  }
   /* ===============================
      고객 관리
      =============================== */
@@ -1782,14 +1788,28 @@ function showAdminTab(tab) {
   /* ===============================
      예약 관리
      =============================== */
-  if (tab === "orders") {
-    box.innerHTML = `
-      <h3>📋 예약 관리</h3>
-      <div id="orderList" style="margin-top:16px;"></div>
-    `;
-    loadOrders();
-    return;
+if (tab === "orders") {
+  box.innerHTML = `
+    <h3>📋 예약 관리</h3>
+    <div id="orderList" style="margin-top:16px;"></div>
+  `;
+
+  // 기존 타이머 있으면 제거
+  if (orderAutoRefreshTimer) {
+    clearInterval(orderAutoRefreshTimer);
+    orderAutoRefreshTimer = null;
   }
+
+  // 최초 1회 로드
+  loadOrders();
+
+  // 🔥 5초마다 자동 새로고침
+  orderAutoRefreshTimer = setInterval(() => {
+    loadOrders();
+  }, 5000);
+
+  return;
+}
 
   /* ===============================
      업체 관리
@@ -2100,6 +2120,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
