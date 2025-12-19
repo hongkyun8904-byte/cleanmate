@@ -1753,13 +1753,12 @@ async function loadOrders() {
       ${order.name} (${order.phone})
     </div>
 
-    <div style="margin-top:6px;color:#555;">
-      주소: ${order.address || "-"}<br>
-      구조/평수: ${order.structure || "-"} / ${order.supply_area ?? "-"}평<br>
-      상태: <b>${order.status}</b>
-      ${order.assigned_company ? `배정업체: <b>${order.assigned_company}</b><br>` : ""}
-      ${renderStatusFlow(order.status)}
-    </div>
+<div style="margin-top:6px;color:#555;">
+  주소: ${order.address || "-"}<br>
+  구조/평수: ${order.structure || "-"} / ${order.supply_area ?? "-"}평<br>
+  상태: <b>${order.status}</b><br>
+  ${order.assigned_company ? `배정업체: <b>${order.assigned_company}</b><br>` : ""}
+</div>
 
     ${
       order.status === "반려됨" && order.memo
@@ -2197,6 +2196,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
