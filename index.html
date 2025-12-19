@@ -1657,9 +1657,28 @@ async function updateOrderStatus(orderId, newStatus) {
   let updateData = { status: newStatus };
 
   // 💰 입금확인 → 자동 업체 배정
-  if (newStatus === "배정완료") {
+ async function updateOrderStatus(orderId, newStatus) {
+  let updateData = { status: newStatus };
+
+  // 💰 입금확인 시 → 자동 배정
+  if (newStatus === "입금확인") {
+    updateData.status = "배정완료";
     updateData.assigned_company = "환승클린";
   }
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .update(updateData)
+    .eq("id", orderId);
+
+  if (error) {
+    alert("배정처리 실패");
+    console.error(error);
+    return;
+  }
+
+  loadOrders();
+}
 
   const { error } = await supabaseClient
     .from("orders")
@@ -1811,7 +1830,7 @@ function renderNextActionButtons(order) {
   // 🟢 접수 단계
   if (order.status === "접수됨") {
     buttons += `
-      <button onclick="updateOrderStatus('${order.id}', '배정완료')">
+      <button onclick="updateOrderStatus('${order.id}', '입금확인')">
   💰 입금확인
 </button>
       <button onclick="rejectOrder('${order.id}')">
@@ -2196,6 +2215,7 @@ function deleteCompany(i) {
 
 </body>
 </html>
+
 
 
 
