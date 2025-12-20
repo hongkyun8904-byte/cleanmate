@@ -1753,7 +1753,7 @@ function closeAdminDashboard() {
     `;
   }
 
-  if (order.status === "배정중") {
+ if (order.status === "접수됨") {
     buttons += `
       <button onclick="updateOrderStatus('${order.id}', '배정완료')">
         ✅ 배정완료
@@ -1885,7 +1885,8 @@ async function loadOrders() {
   </div>
 `).join("");
 }
-
+  
+let orderAutoRefreshTimer = null;
 
 function showAdminTab(tab) {
   const box = document.getElementById("adminContent");
@@ -2240,6 +2241,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
