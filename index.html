@@ -1659,23 +1659,44 @@ function closeAdminDashboard() {
    관리자 주문 관리 (핵심)
    =============================== */
   async function loadCustomers() {
-  const { data, error } = await supabaseClient
-    .from("customers")
-    .select("*")
-    .order("created_at", { ascending: false });
+  // 1️⃣ 고객 목록
+  const { data: customerData, error: customerError } =
+    await supabaseClient
+      .from("customers")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error(error);
+  if (customerError) {
+    console.error(customerError);
     return;
   }
 
-  customers = data.map(c => ({
+  // 2️⃣ 주문 목록 (이용 횟수 계산용)
+  const { data: orderData, error: orderError } =
+    await supabaseClient
+      .from("orders")
+      .select("phone");
+
+  if (orderError) {
+    console.error(orderError);
+    return;
+  }
+
+  // 3️⃣ 전화번호별 이용 횟수 계산
+  const orderCountMap = {};
+  orderData.forEach(o => {
+    if (!o.phone) return;
+    orderCountMap[o.phone] = (orderCountMap[o.phone] || 0) + 1;
+  });
+
+  // 4️⃣ 고객 + 이용횟수 합치기
+  customers = customerData.map(c => ({
     id: c.id,
     name: c.name,
     phone: c.phone,
     address: c.address,
     memo: c.memo || "",
-    count: 0
+    count: orderCountMap[c.phone] || 0
   }));
 
   renderCustomers();
@@ -2219,6 +2240,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
