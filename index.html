@@ -973,7 +973,7 @@
 
               <div class="field">
                 <label for="custName">이름</label>
-                <input type="text" id="custName" placeholder="예: 김홍균" />
+                <input type="text" id="custName" placeholder="예: 홍길" />
               </div>
               <div class="field">
                 <label for="custPhone">연락처</label>
@@ -1510,6 +1510,8 @@ if (error) {
 
 
 alert("신청이 정상적으로 접수되었습니다.\n입금 확인 후 바로 배정됩니다.");
+  
+document.getElementById("depositNotice").style.display = "block";
 
 document.getElementById("matchingLoading").style.display = "flex";
 
@@ -2275,6 +2277,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
