@@ -1150,6 +1150,18 @@
   overflow:auto;
 ">
   <div style="max-width:1200px;margin:20px auto;padding:20px;">
+<div id="adminStats" style="
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:12px;
+  margin-bottom:20px;
+">
+  <div class="card"><b>총 견적 요청</b><br><span id="statTotalOrders">-</span> 건</div>
+  <div class="card"><b>실제 고객 수</b><br><span id="statCustomers">-</span> 명</div>
+  <div class="card"><b>배정 완료</b><br><span id="statCompleted">-</span> 건</div>
+  <div class="card"><b>평균 견적</b><br><span id="statAvgPrice">-</span> 원</div>
+  <div class="card"><b>특수청소 요청</b><br><span id="statSpecial">-</span> 건</div>
+</div>
 
     <div style="display:flex;justify-content:space-between;align-items:center;">
 <div style="
@@ -1649,6 +1661,7 @@ function closeAdminModal() {
 function openAdminDashboard() {
   document.getElementById("adminModal").style.display = "none";
   document.getElementById("adminDashboard").style.display = "block";
+  loadAdminStats();  
   showAdminTab("reviews"); // 기본으로 리뷰 탭 열기
 }
 
@@ -1658,6 +1671,48 @@ function closeAdminDashboard() {
 /* ===============================
    관리자 주문 관리 (핵심)
    =============================== */
+  async function loadAdminStats() {
+  // 1️⃣ 전체 주문 수
+  const { count: totalOrders } = await supabaseClient
+    .from("orders")
+    .select("*", { count: "exact", head: true });
+
+  // 2️⃣ 고객 수
+  const { count: totalCustomers } = await supabaseClient
+    .from("customers")
+    .select("*", { count: "exact", head: true });
+
+  // 3️⃣ 배정 완료 주문
+  const { count: completedOrders } = await supabaseClient
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "배정완료");
+
+  // 4️⃣ 평균 견적
+  const { data: avgData } = await supabaseClient
+    .from("orders")
+    .select("estimated_price")
+    .not("estimated_price", "is", null);
+
+  let avgPrice = "-";
+  if (avgData && avgData.length > 0) {
+    const sum = avgData.reduce((a, b) => a + b.estimated_price, 0);
+    avgPrice = Math.round(sum / avgData.length).toLocaleString("ko-KR");
+  }
+
+  // 5️⃣ 특수청소 수
+  const { count: specialCount } = await supabaseClient
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("special_clean", true);
+
+  // 화면 반영
+  document.getElementById("statTotalOrders").textContent = totalOrders ?? "-";
+  document.getElementById("statCustomers").textContent = totalCustomers ?? "-";
+  document.getElementById("statCompleted").textContent = completedOrders ?? "-";
+  document.getElementById("statAvgPrice").textContent = avgPrice;
+  document.getElementById("statSpecial").textContent = specialCount ?? "-";
+}
   async function loadCustomers() {
   // 1️⃣ 고객 목록
   const { data: customerData, error: customerError } =
@@ -2241,6 +2296,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
