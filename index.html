@@ -826,6 +826,36 @@
 
           <div class="field">
             <label>거주청소 / 붙박이장 / 주방 옵션</label>
+            <!-- 📅 청소 날짜 선택 -->
+<div class="field" style="margin-top:12px;">
+  <label for="cleanDate">청소 날짜</label>
+  <input type="date" id="cleanDate" />
+</div>
+
+<!-- ⏰ 청소 시간 선택 -->
+<div class="field">
+  <label>청소 시간</label>
+
+  <div class="checkbox-row">
+    <input type="radio" name="cleanTime" id="timeMorning" value="오전 8시~9시" />
+    <label for="timeMorning">오전 8시 ~ 9시</label>
+  </div>
+
+  <div class="checkbox-row">
+    <input type="radio" name="cleanTime" id="timeAfternoon" value="오후 2시~3시" />
+    <label for="timeAfternoon">오후 2시 ~ 3시</label>
+  </div>
+</div>
+
+<!-- ⏰ 사이청소 시간 (사이청소 체크 시만 사용) -->
+<div class="field" id="sideCleanTimeBox" style="display:none;">
+  <label>사이청소 시간</label>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <input type="time" id="sideStartTime" />
+    <span>~</span>
+    <input type="time" id="sideEndTime" />
+  </div>
+</div>
 <div style="margin-top:12px;font-size:12px;font-weight:600;">
   가전 기본청소
 </div>
@@ -873,6 +903,13 @@
 <!-- 사이청소 -->
 <div class="checkbox-row" style="margin-top:8px;">
   <input type="checkbox" id="sideClean" />
+  <script>
+document.getElementById("sideClean").addEventListener("change", function () {
+  const box = document.getElementById("sideCleanTimeBox");
+  box.style.display = this.checked ? "block" : "none";
+});
+</script>
+
   <label for="sideClean">사이청소  +50,000원</label>
 </div>
 
@@ -1495,6 +1532,23 @@ async function sendToKakao() {
   const phone = (document.getElementById("custPhone").value || "").trim();
   const addr = (document.getElementById("custAddr").value || "").trim();
   const memo = (document.getElementById("custMemo").value || "").trim();
+  const cleanDate = document.getElementById("cleanDate").value;
+
+let cleanTime = "";
+const timeMorning = document.getElementById("timeMorning").checked;
+const timeAfternoon = document.getElementById("timeAfternoon").checked;
+
+if (timeMorning) cleanTime = "오전 8시~9시";
+if (timeAfternoon) cleanTime = "오후 2시~3시";
+
+const sideCleanChecked = document.getElementById("sideClean").checked;
+let sideCleanTime = "";
+
+if (sideCleanChecked) {
+  const start = document.getElementById("sideStartTime").value;
+  const end = document.getElementById("sideEndTime").value;
+  sideCleanTime = start && end ? `${start} ~ ${end}` : "";
+}
 
   if (!name || !phone) {
     alert("이름과 연락처는 필수 입력입니다.");
@@ -1559,6 +1613,9 @@ const { error } = await supabaseClient
       max_score: maxScoreText === "-" ? null : parseInt(maxScoreText),
       special_clean: specialClean,
       status: "접수됨"
+      clean_date: cleanDate,
+clean_time: cleanTime,
+side_clean_time: sideCleanTime,
     }
   ]);
 
@@ -1950,6 +2007,9 @@ async function loadOrders() {
   주소: ${order.address || "-"}<br>
   구조/평수: ${order.structure || "-"} / ${order.supply_area ?? "-"}평<br>
   상태: <b>${order.status}</b><br>
+  청소일: ${order.clean_date || "-"}<br>
+시간: ${order.clean_time || "-"}<br>
+${order.side_clean_time ? `사이청소 시간: ${order.side_clean_time}<br>` : ""}
   ${order.assigned_company ? `배정업체: <b>${order.assigned_company}</b><br>` : ""}
 </div>
 
@@ -2337,6 +2397,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
