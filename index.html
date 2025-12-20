@@ -826,7 +826,46 @@
 
           <div class="field">
             <label>거주청소 / 붙박이장 / 주방 옵션</label>
+<div style="margin-top:12px;font-size:12px;font-weight:600;">
+  가전 기본청소
+</div>
 
+<!-- 에어컨 -->
+<div class="options-row">
+  <span style="font-size:12px;">에어컨 기본청소</span>
+  <div class="counter">
+    <button type="button" onclick="updateCounter('aircon', -1)">-</button>
+    <span id="airconCount">0</span>
+    <button type="button" onclick="updateCounter('aircon', 1)">+</button>
+  </div>
+</div>
+<small>1대당 +20,000원</small>
+
+<!-- 세탁기 -->
+<div class="options-row" style="margin-top:6px;">
+  <span style="font-size:12px;">세탁기 기본청소</span>
+  <div class="counter">
+    <button type="button" onclick="updateCounter('washer', -1)">-</button>
+    <span id="washerCount">0</span>
+    <button type="button" onclick="updateCounter('washer', 1)">+</button>
+  </div>
+</div>
+<small>1대당 +20,000원</small>
+
+<!-- 냉장고 -->
+<div class="options-row" style="margin-top:6px;">
+  <span style="font-size:12px;">냉장고 기본청소</span>
+  <div class="counter">
+    <button type="button" onclick="updateCounter('fridge', -1)">-</button>
+    <span id="fridgeCount">0</span>
+    <button type="button" onclick="updateCounter('fridge', 1)">+</button>
+  </div>
+</div>
+
+<div class="checkbox-row" style="margin-top:4px;">
+  <input type="checkbox" id="largeFridge" />
+  <label for="largeFridge">대형 냉장고 (+10,000원 추가)</label>
+</div>
             <div class="checkbox-row">
               <input type="checkbox" id="isLiveIn" />
               <label for="isLiveIn">거주청소 (짐이 있는 상태) +50,000원</label>
@@ -1291,14 +1330,23 @@ function updateApplyButtonText() {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function updateCounter(type, delta) {
-    const id = type === "ward2" ? "ward2Count" : "ward3Count";
-    const el = document.getElementById(id);
-    let val = parseInt(el.textContent || "0", 10);
-    val += delta;
-    if (val < 0) val = 0;
-    el.textContent = String(val);
-  }
+ function updateCounter(type, delta) {
+  let id = "";
+
+  if (type === "ward2") id = "ward2Count";
+  if (type === "ward3") id = "ward3Count";
+  if (type === "aircon") id = "airconCount";
+  if (type === "washer") id = "washerCount";
+  if (type === "fridge") id = "fridgeCount";
+
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  let val = parseInt(el.textContent || "0", 10);
+  val += delta;
+  if (val < 0) val = 0;
+  el.textContent = String(val);
+}
 
   function calculateEstimate() {
     const structure = document.getElementById("structure").value;
@@ -1352,6 +1400,18 @@ updateApplyButtonText();
 
     // 3) 거주 / 붙박이 / 주방
     let optionsAdd = 0;
+    const airconCount = parseInt(document.getElementById("airconCount").textContent || "0", 10);
+const washerCount = parseInt(document.getElementById("washerCount").textContent || "0", 10);
+const fridgeCount = parseInt(document.getElementById("fridgeCount").textContent || "0", 10);
+const largeFridge = document.getElementById("largeFridge").checked;
+
+optionsAdd += airconCount * 20000;
+optionsAdd += washerCount * 20000;
+optionsAdd += fridgeCount * 20000;
+
+if (largeFridge && fridgeCount > 0) {
+  optionsAdd += fridgeCount * 10000;
+}
 if (sideClean) optionsAdd += 50000;
     if (isLiveIn) optionsAdd += 50000;
     optionsAdd += ward2Count * 50000;
@@ -2277,6 +2337,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
