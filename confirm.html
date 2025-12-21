@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CleanMate - 필수 확인</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui, sans-serif; background:#f5f7fb; color:#222; margin:0; }
+    .wrap{ max-width:900px; margin:0 auto; padding:18px; }
+    .card{ background:#fff; border-radius:16px; padding:16px; box-shadow:0 10px 26px rgba(15,35,52,.08); border:1px solid rgba(0,0,0,.04); margin-bottom:12px; }
+    h1{ font-size:18px; margin:0 0 10px; }
+    h2{ font-size:15px; margin:0 0 10px; }
+    .muted{ color:#6b7280; font-size:12px; line-height:1.5; }
+    .box{ background:#f9fafc; border:1px solid #e5e7eb; padding:12px; border-radius:12px; font-size:13px; line-height:1.6; }
+    .danger{ background:#fff8e1; border:1px solid #ffe082; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; }
+    .pill{ display:inline-block; padding:6px 10px; border-radius:999px; background:#e3f2fd; color:#1565c0; font-size:12px; font-weight:600; }
+    .check{ display:flex; gap:8px; align-items:flex-start; margin-top:10px; font-size:13px; }
+    .check input{ margin-top:3px; }
+    .btn{
+      width:100%; padding:12px 14px; border-radius:999px; border:none;
+      background:#0288d1; color:#fff; font-weight:800; font-size:14px; cursor:pointer;
+      box-shadow:0 12px 20px rgba(2,136,209,.25);
+    }
+    .btn:disabled{ opacity:.4; cursor:not-allowed; box-shadow:none; }
+    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .back{ border:1px solid #d1d9e6; background:#fff; padding:8px 12px; border-radius:10px; cursor:pointer; }
+    .summary{ font-size:13px; line-height:1.6; }
+    .summary b{ color:#0288d1; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+<div style="text-align:center;margin-bottom:12px;">
+  <img src="logo-cleanmate.png" alt="CleanMate 로고" style="height:42px;opacity:0.9;">
+</div>
+    <div class="topbar">
+      <button class="back" onclick="history.back()">← 뒤로</button>
+      <span class="pill">필수 확인 페이지</span>
+    </div>
+
+    <div class="card">
+<h1>필수 안내 페이지입니다.</h1>
+<div class="muted">
+  예약 진행 전, 아래 내용을 반드시 확인해주시기 바랍니다.
+</div>
+    </div>
+
+    <div class="card">
+      <h2>📌 고객님의 견적 요약</h2>
+<div class="muted">
+  고객님께서 선택하신 구조·옵션·일정을 기준으로 산출된 예상 견적입니다.
+</div>
+      <div id="summary" class="box summary">불러오는 중…</div>
+      <div class="muted" style="margin-top:8px;">
+    
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💥 청소 범위 안내 (매우 중요)</h2>
+      <div class="box">
+        모든 청소는 <b>집 내부</b> 기준으로 진행됩니다.<br/>
+        ✅ 포함: <b>현관문 안쪽</b>, <b>내부 샷시</b>, <b>방충망 안쪽</b><br/>
+        ❌ 제외: <b>외부 창문</b>, <b>외부 샷시</b>, <b>건물 공용부</b>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✅ 현장 추가 비용 발생 가능 항목</h2>
+      <div class="box">
+        아래 항목은 현장 확인 후 추가 비용이 발생할 수 있습니다.<br/>
+        1) 비확장 베란다<br/>
+        2) 심한 오염도 / 곰팡이 / 니코틴<br/>
+        3) 스티커 제거(뾱뾱이 등)<br/>
+        4) 엘리베이터 없는 3층 이상<br/>
+        5) 반려견/반려묘 현장(털·악취)<br/>
+        6) 외부 창문 청소<br/>
+        7) 분진 오염도가 심한 경우<br/>
+        8) 야외 테라스(현장 조율)<br/>
+        9) 견적과 상이한 평수·구조(방 개수/전실/복층 등)<br/>
+        10) 주차공간 미확보 시 주차 비용(고객 부담)
+      </div>
+      <div class="muted" style="margin-top:8px;">
+        추가 비용은 <b>현장 설명 후 고객 동의</b> 없이 임의 진행하지 않습니다.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📷 오염도 사진 미첨부 시 고지</h2>
+      <div class="box">
+        오염도 사진을 업로드하지 않은 경우,<br/>
+        현장 확인 결과에 따라 추가 비용이 발생할 수 있습니다.<br/>
+        단, <b>추가 비용 안내 후 고객 동의 없이 임의 진행하지 않습니다.</b>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💥 예약 취소/변경/위약금 규정</h2>
+      <div class="box danger">
+        (청소 예약 날짜 기준)<br/>
+        - <b>3일 전까지</b>: 무료 취소(예약금 환불), 날짜/시간 변경 가능<br/>
+        - <b>2일 전 ~ 당일</b>: 예약금 소멸<br/>
+        - <b>현장 퇴거</b>: 예약금 소멸 + 청소금액의 <b>50% 위약금</b>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✅ 동의 체크 (필수)</h2>
+
+      <label class="check">
+        <input type="checkbox" id="agreeScope" />
+        <span>청소 범위(내부 기준, 외부 제외)를 확인했고 동의합니다.</span>
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="agreeExtra" />
+        <span>현장 추가 비용 발생 가능 항목을 확인했고 동의합니다.</span>
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="agreeCancel" />
+        <span>취소/변경/위약금 규정을 확인했고 동의합니다.</span>
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="agreeAll" />
+        <span><b>위 내용을 모두 확인하였으며 동의합니다.</b></span>
+      </label>
+
+      <button id="finalBtn" class="btn" disabled onclick="finalSubmit()">
+        동의 후 예약 요청을 진행합니다.
+      </button>
+
+      <div class="muted" style="margin-top:10px;">
+        * 동의 체크 기록은 예약/분쟁 대응을 위해 저장될 수 있습니다.
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// payload 불러오기
+const payload = JSON.parse(localStorage.getItem("cleanmate_payload") || "null");
+
+// 요약 표시
+const summaryEl = document.getElementById("summary");
+if (!payload) {
+  summaryEl.innerHTML = "이전 페이지 데이터가 없습니다. 처음부터 다시 진행해주세요.";
+} else {
+  summaryEl.innerHTML = `
+    고객: <b>${payload.name || "-"}</b> (${payload.phone || "-"})<br/>
+    주소: ${payload.address || "-"}<br/>
+    청소일: <b>${payload.clean_date || "-"}</b> / 시간: <b>${payload.clean_time || "-"}</b>
+    ${payload.side_clean_time ? `<br/>사이청소 시간: <b>${payload.side_clean_time}</b>` : ""}
+    <br/>
+    구조/평수: ${payload.structure || "-"} / ${payload.supply_area ?? "-"}평<br/>
+    예상 견적: <b>${payload.total_price_text || "-"}</b><br/>
+    메모: ${payload.memo || "-"}
+  `;
+}
+
+// 동의 체크 로직
+const agreeScope = document.getElementById("agreeScope");
+const agreeExtra = document.getElementById("agreeExtra");
+const agreeCancel = document.getElementById("agreeCancel");
+const agreeAll = document.getElementById("agreeAll");
+const finalBtn = document.getElementById("finalBtn");
+
+function syncAgreeAll() {
+  const baseAll = agreeScope.checked && agreeExtra.checked && agreeCancel.checked;
+  agreeAll.checked = baseAll;
+  finalBtn.disabled = !(baseAll && agreeAll.checked && payload);
+}
+
+agreeScope.onchange = syncAgreeAll;
+agreeExtra.onchange = syncAgreeAll;
+agreeCancel.onchange = syncAgreeAll;
+agreeAll.onchange = syncAgreeAll;
+
+// 최종 제출
+async function finalSubmit() {
+  if (!payload) {
+    alert("이전 정보가 없습니다.");
+    return;
+  }
+
+  const { error: customerError } = await supabaseClient
+    .from("customers")
+    .upsert(
+      {
+        name: payload.name,
+        phone: payload.phone,
+        address: payload.address,
+        memo: payload.memo
+      },
+      { onConflict: "phone" }
+    );
+
+  if (customerError) {
+    alert("고객 저장 오류");
+    return;
+  }
+
+  const { error: orderError } = await supabaseClient
+    .from("orders")
+    .insert([{
+      name: payload.name,
+      phone: payload.phone,
+      address: payload.address,
+      memo: payload.memo,
+      structure: payload.structure,
+      supply_area: payload.supply_area,
+      estimated_price_text: payload.total_price_text,
+      clean_date: payload.clean_date,
+      clean_time: payload.clean_time,
+      side_clean_time: payload.side_clean_time,
+      status: "접수됨",
+      agree_scope: true,
+      agree_extra: true,
+      agree_cancel: true,
+      agreed_at: new Date().toISOString()
+    }]);
+
+  if (orderError) {
+    alert("예약 저장 오류");
+    return;
+  }
+
+   localStorage.removeItem("cleanmate_payload");
+
+  alert(
+    "예약 요청이 정상적으로 접수되었습니다.\n\n" +
+    "입금 확인 후 우수 업체가 자동으로 배정됩니다."
+  );
+
+  window.location.href = "deposit.html";
+}
+</script>
+
+</body>
+</html>

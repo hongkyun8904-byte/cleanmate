@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>CleanMate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR",system-ui,sans-serif;
+      background:#f5f7fb;
+      color:#222;
+    }
+    .wrap{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+    .box{
+      max-width:900px;
+      width:100%;
+      background:#fff;
+      border-radius:28px;
+      padding:40px;
+      box-shadow:0 20px 50px rgba(0,0,0,.08);
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* 로고 */
+    .logo-bg{
+      position:absolute;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      opacity:0;
+      transition:opacity 1.8s ease;
+      z-index:1;
+    }
+    .logo-bg.show{
+      opacity:.08;
+    }
+    .logo-bg img{
+      width:360px;
+      max-width:80vw;
+    }
+
+    /* 문구 */
+    .content{
+      position:relative;
+      z-index:2;
+    }
+    h1{
+      font-size:26px;
+      line-height:1.4;
+      margin-bottom:20px;
+    }
+    h1 strong{
+      color:#0288d1;
+    }
+    p{
+      font-size:16px;
+      line-height:1.6;
+      margin-bottom:14px;
+      color:#444;
+    }
+
+    .cta{
+      margin-top:30px;
+    }
+    .cta button{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:999px;
+      background:#0288d1;
+      color:#fff;
+      font-size:15px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 14px 24px rgba(2,136,209,.3);
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="box">
+    <div class="logo-bg" id="logoBg">
+      <img src="logo-cleanmate.png" alt="CleanMate">
+    </div>
+
+    <div class="content">
+      <h1>
+        지금까지 속이고 속이는 입주청소는 <strong>그만!</strong>
+      </h1>
+
+      <p>
+        낮은 가격에 혹해<br>
+        현장에서 더 비싼 추가금을<br>
+        겪어보셨나요?
+      </p>
+
+      <p>
+        <strong>클린메이트</strong>는<br>
+        납득 가능한 기준과<br>
+        투명한 요금만 부과합니다.
+      </p>
+
+      <div class="cta">
+        <button onclick="goNext()">청소 견적 시작하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 로고 페이드인
+  setTimeout(() => {
+    document.getElementById("logoBg").classList.add("show");
+  }, 500);
+
+  function goNext(){
+    window.location.href = "index.html";
+  }
+</script>
+</body>
+</html>
