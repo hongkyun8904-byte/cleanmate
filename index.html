@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script>
+  if (!sessionStorage.getItem("introDone")) {
+    location.replace("intro.html");
+  }
+</script>
   <meta charset="UTF-8" />
   <title>CleanMate – 청소 견적부터 예약까지, 한 번에</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -2371,6 +2376,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
