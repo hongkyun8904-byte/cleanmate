@@ -147,7 +147,11 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // payload 불러오기
 const payload = JSON.parse(localStorage.getItem("cleanmate_payload") || "null");
-
+const priceText = payload.total_price_text;   // "330,000원"
+const priceNumber = priceText
+  ? parseInt(priceText.replace(/[^\d]/g, ""), 10)
+  : null;
+  
 // 요약 표시
 const summaryEl = document.getElementById("summary");
 if (!payload) {
@@ -209,23 +213,20 @@ async function finalSubmit() {
 
   const { error: orderError } = await supabaseClient
     .from("orders")
-    .insert([{
-      name: payload.name,
-      phone: payload.phone,
-      address: payload.address,
-      memo: payload.memo,
-      structure: payload.structure,
-      supply_area: payload.supply_area,
-      estimated_price_text: payload.total_price_text,
-      clean_date: payload.clean_date,
-      clean_time: payload.clean_time,
-      side_clean_time: payload.side_clean_time,
-      status: "접수됨",
-      agree_scope: true,
-      agree_extra: true,
-      agree_cancel: true,
-      agreed_at: new Date().toISOString()
-    }]);
+.insert([{
+  name: payload.name,
+  phone: payload.phone,
+  address: payload.address,
+  memo: payload.memo,
+  structure: payload.structure,
+  supply_area: payload.supply_area,
+  estimated_price_text: payload.total_price_text,
+  estimated_price_number: priceNumber,
+  clean_date: payload.clean_date,
+  clean_time: payload.clean_time,
+  side_clean_time: payload.side_clean_time,
+  status: "접수됨"
+}]);
 
   if (orderError) {
     alert("예약 저장 오류");
@@ -244,4 +245,5 @@ async function finalSubmit() {
 </script>
 
 </body>
+
 </html>
