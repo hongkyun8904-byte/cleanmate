@@ -1068,31 +1068,6 @@ document.getElementById("sideClean").addEventListener("change", function () {
   우수업체에게 자동 신청하기
 </button>
 
-<div id="depositNotice" style="
-  display:none;
-  margin-top:10px;
-  padding:12px;
-  border-radius:12px;
-  background:#fff8e1;
-  border:1px solid #ffe082;
-  font-size:12px;
-  color:#5d4037;
-">
-  <b>예약금 안내</b><br><br>
-
-  예약 확정을 위해<br>
-  <b>예약금 60,000원</b>을 입금해주세요.<br><br>
-
-  은행: <b>카카오뱅크</b><br>
-  계좌번호: <b>3333054572187</b><br>
-  예금주: <b>김홍균</b><br><br>
-
-  <span style="color:#d84315;font-weight:600;">
-    ※ 입금 확인이 되면 우수업체로<br>
-    바로 자동 배정됩니다.
-  </span>
-</div>
-
               <p class="small-note">
                 신청하기 버튼을 누르면 카카오톡 오픈채팅이 열리며,<br />
                 견적 내용이 복사된 상태에서 상담을 이어가실 수 있습니다.
@@ -1582,15 +1557,16 @@ if (customerError) {
   const supplyAreaInput = document.getElementById("supplyArea").value;
 const supplyArea = supplyAreaInput ? Number(supplyAreaInput) : null;
   const totalPrice = document.getElementById("totalPriceText").textContent || "-";
-  const priceNumber =
-  totalPrice.includes("원")
-    ? parseInt(totalPrice.replace(/[^\d]/g, ""), 10)
-    : null;
+  const priceText = totalPrice;
+const priceNumber = priceText.includes("원")
+  ? parseInt(priceText.replace(/[^\d]/g, ""), 10)
+  : null;
+ 
   const photoCountText = document.getElementById("photoCountText").textContent || "-";
   const avgScoreText = document.getElementById("avgScoreText").textContent || "-";
   const maxScoreText = document.getElementById("maxScoreText").textContent || "-";
 
-const { error: orderError } = await supabaseClient
+  const { error: orderError } = await supabaseClient
   .from("orders")
 .insert([{
   name,
@@ -2395,6 +2371,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
