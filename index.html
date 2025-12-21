@@ -11,12 +11,12 @@
       padding: 0;
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui, sans-serif;
-      background: #f5f7fb;
-      color: #222;
-      line-height: 1.5;
-    }
+   body {
+  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui, sans-serif;
+  background: #f5f7fb;
+  color: #222;
+  line-height: 1.5;
+}
 
     a {
       text-decoration: none;
@@ -1093,11 +1093,6 @@ document.getElementById("sideClean").addEventListener("change", function () {
   </span>
 </div>
 
-<p class="small-note">
-  신청하기 버튼을 누르면 카카오톡 오픈채팅이 열리며,<br />
-  견적 내용이 복사된 상태에서 상담을 이어가실 수 있습니다.
-</p>
-
               <p class="small-note">
                 신청하기 버튼을 누르면 카카오톡 오픈채팅이 열리며,<br />
                 견적 내용이 복사된 상태에서 상담을 이어가실 수 있습니다.
@@ -1587,56 +1582,57 @@ if (customerError) {
   const supplyAreaInput = document.getElementById("supplyArea").value;
 const supplyArea = supplyAreaInput ? Number(supplyAreaInput) : null;
   const totalPrice = document.getElementById("totalPriceText").textContent || "-";
+  const priceNumber =
+  totalPrice.includes("원")
+    ? parseInt(totalPrice.replace(/[^\d]/g, ""), 10)
+    : null;
   const photoCountText = document.getElementById("photoCountText").textContent || "-";
   const avgScoreText = document.getElementById("avgScoreText").textContent || "-";
   const maxScoreText = document.getElementById("maxScoreText").textContent || "-";
 
-const { error } = await supabaseClient
+const { error: orderError } = await supabaseClient
   .from("orders")
-  .insert([
-    {      
-      name,
-      phone,
-      address: addr,
-      memo,
-      structure,
- supply_area: supplyArea === null ? null : supplyArea,
-     estimated_price:
-  totalPrice === "상담 후 결정"
-    ? null
-    : parseInt(totalPrice.replace(/[^0-9]/g, ""), 10),
-      photo_count:
-      photoCountText.includes("장")
-    ? Number(photoCountText.replace("장", ""))
-    : 0,
-      avg_score: avgScoreText === "-" ? null : parseInt(avgScoreText),
-      max_score: maxScoreText === "-" ? null : parseInt(maxScoreText),
-      special_clean: specialClean,
-      status: "접수됨"
-      clean_date: cleanDate,
-clean_time: cleanTime,
-side_clean_time: sideCleanTime,
-    }
-  ]);
+.insert([{
+  name,
+  phone,
+  address: addr,
+  memo,
+  structure,
+  supply_area: supplyArea,
+  estimated_price_text: totalPrice,
+  estimated_price_number: priceNumber, // ⭐ 추가
+  clean_date: cleanDate,
+  clean_time: cleanTime,
+  side_clean_time: sideCleanTime || null,
+  status: "접수됨"
+}]);
 
-if (error) {
-  console.error(error);
-  alert("예약 저장 오류: " + error.message);
+if (orderError) {
+  console.error(orderError);
+  alert("예약 저장 중 오류가 발생했습니다.");
   return;
 }
 
+  const payload = {
+  name,
+  phone,
+  address: addr,
+  memo,
+  clean_date: cleanDate,
+  clean_time: cleanTime,
+  side_clean_time: sideCleanTime || null,
+  structure,
+  supply_area: supplyArea,
+  total_price_text: document.getElementById("totalPriceText").textContent
+};
 
-alert("신청이 정상적으로 접수되었습니다.\n입금 확인 후 바로 배정됩니다.");
+localStorage.setItem("cleanmate_payload", JSON.stringify(payload));
+
+// 필수 확인 페이지로 이동
+window.location.href = "confirm.html";
   
-document.getElementById("depositNotice").style.display = "block";
-
-document.getElementById("matchingLoading").style.display = "flex";
-
-setTimeout(() => {
-  document.getElementById("matchingLoading").style.display = "none";
-  window.open("https://open.kakao.com/o/sItc0P4h", "_blank");
-}, 1500);
 }
+  
 </script>
 <!-- ===============================
      관리자 로그인 모달
@@ -1785,24 +1781,26 @@ function closeAdminDashboard() {
     .from("orders")
     .select("*", { count: "exact", head: true })
     .eq("status", "배정완료");
-
-  // 4️⃣ 평균 견적
-  const { data: avgData } = await supabaseClient
+    
+// 4️⃣ 평균 객단가 (실전)
+const { data: priceData, error: priceError } =
+  await supabaseClient
     .from("orders")
-    .select("estimated_price")
-    .not("estimated_price", "is", null);
+    .select("estimated_price_number")
+    .not("estimated_price_number", "is", null);
 
-  let avgPrice = "-";
-  if (avgData && avgData.length > 0) {
-    const sum = avgData.reduce((a, b) => a + b.estimated_price, 0);
-    avgPrice = Math.round(sum / avgData.length).toLocaleString("ko-KR");
-  }
+let avgPrice = "-";
 
-  // 5️⃣ 특수청소 수
-  const { count: specialCount } = await supabaseClient
-    .from("orders")
-    .select("*", { count: "exact", head: true })
-    .eq("special_clean", true);
+if (!priceError && priceData.length > 0) {
+  const sum = priceData.reduce(
+    (acc, cur) => acc + cur.estimated_price_number,
+    0
+  );
+  avgPrice = Math.round(sum / priceData.length).toLocaleString("ko-KR");
+}
+
+// 5️⃣ 특수청소 비중 (지금은 임시)
+const specialCount = "-";
 
   // 화면 반영
   document.getElementById("statTotalOrders").textContent = totalOrders ?? "-";
@@ -2397,6 +2395,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
