@@ -158,6 +158,12 @@ async function loadMyOrder(){
   }
 
   const o = data[0];
+  // ✅ 예약금 / 잔금 계산
+const depositAmount = 60000; // 예약금 6만원
+const totalAmount = o.estimated_price_number || 0;
+const remainingAmount = totalAmount
+  ? totalAmount - depositAmount
+  : null;
 
   let statusBox = "";
   if(o.status === "배정완료"){
@@ -174,6 +180,14 @@ async function loadMyOrder(){
 
       <p><b>청소 일정</b><br>
       ${o.clean_date || "-"} / ${o.clean_time || "-"}</p>
+      <p><b>결제 정보</b><br>
+예약금: <b>60,000원</b><br>
+잔금: <b>
+  ${remainingAmount !== null
+    ? remainingAmount.toLocaleString("ko-KR") + "원"
+    : "-"}
+</b>
+</p>
 
       ${o.side_clean_time ? `<p><b>사이청소</b><br>${o.side_clean_time}</p>` : ""}
 
@@ -185,12 +199,30 @@ async function loadMyOrder(){
       <p class="label">
         * 입금 확인 후 우수 업체가 자동 배정됩니다.
       </p>
+      <button onclick="openKakao()" style="
+  width:100%;
+  margin-top:14px;
+  padding:14px;
+  border:none;
+  border-radius:999px;
+  background:#111;
+  color:#fff;
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+">
+  💬 클린메이트 상담원과 상담하기
+</button>
     </div>
   `;
+}
+  function openKakao() {
+  window.open("https://open.kakao.com/o/sItc0P4h", "_blank");
 }
 </script>
 
 </body>
 
 </html>
+
 
