@@ -64,6 +64,21 @@
     .done{ background:#e3f2fd; border:1px solid #90caf9; }
 
     .label{ color:#6b7280;font-size:12px; }
+    .review-btn{
+  flex:1;
+  padding:10px;
+  border-radius:999px;
+  border:1.5px solid #0288d1;
+  background:#fff;
+  color:#0288d1;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.review-btn:hover{
+  background:#e3f2fd;
+}
   </style>
 </head>
 <body>
@@ -171,6 +186,7 @@ const remainingAmount = totalAmount
   }else{
     statusBox = `<div class="status wait">⏳ 현재 예약 접수 상태입니다.</div>`;
   }
+  const canWriteReview = o.status === "배정완료";
 
   box.innerHTML = `
     <div class="card">
@@ -199,6 +215,68 @@ const remainingAmount = totalAmount
       <p class="label">
         * 입금 확인 후 우수 업체가 자동 배정됩니다.
       </p>
+    ${canWriteReview ? `
+<hr style="margin:16px 0;">
+
+<div style="margin-top:12px;">
+  <h3 style="font-size:15px;margin-bottom:6px;">
+    📝 청소는 만족하셨나요?
+  </h3>
+
+  <div style="font-size:12px;color:#6b7280;margin-bottom:10px;">
+    고객님의 후기는 클린메이트에게 큰 힘이 됩니다.
+  </div>
+
+  <div style="display:flex;gap:6px;margin-bottom:10px;">
+    <button onclick="selectReviewScore(5)" class="review-btn">😊 너무 만족해요</button>
+    <button onclick="selectReviewScore(4)" class="review-btn">🙂 만족해요</button>
+    <button onclick="selectReviewScore(2)" class="review-btn">😐 아쉬워요</button>
+  </div>
+
+  <textarea
+    id="reviewText"
+    placeholder="청소 후기를 남겨주세요 (선택)"
+    style="
+      width:100%;
+      height:80px;
+      border-radius:10px;
+      border:1px solid #d1d9e6;
+      padding:10px;
+      font-size:13px;
+      margin-bottom:10px;
+    "
+  ></textarea>
+
+  <div style="margin-bottom:10px;">
+    <div style="font-size:13px;font-weight:600;margin-bottom:4px;">
+      사진 첨부 (최대 10장)
+    </div>
+    <input
+      type="file"
+      id="reviewPhotos"
+      accept="image/*"
+      multiple
+      onchange="checkReviewPhotos()"
+    />
+  </div>
+
+  <button
+    onclick="submitReview()"
+    style="
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:999px;
+      background:#0288d1;
+      color:#fff;
+      font-weight:800;
+      cursor:pointer;
+    "
+  >
+    후기 등록하기
+  </button>
+</div>
+` : ""}
       <button onclick="openKakao()" style="
   width:100%;
   margin-top:14px;
@@ -219,10 +297,39 @@ const remainingAmount = totalAmount
   function openKakao() {
   window.open("https://open.kakao.com/o/sItc0P4h", "_blank");
 }
+let selectedReviewScore = null;
+
+function selectReviewScore(score){
+  selectedReviewScore = score;
+  alert(
+    score === 5 ? "너무 만족해요 선택됨" :
+    score === 4 ? "만족해요 선택됨" :
+    "아쉬워요 선택됨"
+  );
+}
+
+function checkReviewPhotos(){
+  const input = document.getElementById("reviewPhotos");
+  if (input.files.length > 10) {
+    alert("사진은 최대 10장까지만 업로드할 수 있습니다.");
+    input.value = "";
+  }
+}
+
+function submitReview(){
+  if (!selectedReviewScore) {
+    alert("만족도를 선택해주세요.");
+    return;
+  }
+
+  alert("후기가 등록되었습니다. 감사합니다 🙏");
+}  
+  
 </script>
 
 </body>
 
 </html>
+
 
 
