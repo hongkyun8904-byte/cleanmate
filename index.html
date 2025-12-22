@@ -2487,7 +2487,6 @@ async function addReview() {
     .from("reviews")
     .insert([{
       order_id: window.selectedOrderId,
-      author,
       text,
       star: adminReviewScore,
       photos: photoUrls,
@@ -2718,6 +2717,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
