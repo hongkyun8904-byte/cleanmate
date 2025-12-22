@@ -2359,7 +2359,7 @@ async function uploadReviewPhotos(files) {
     const file = files[i];
 
     const fileExt = file.name.split(".").pop();
-    const fileName = `review_${Date.now()}_${i}.${fileExt}`;
+    const fileName = `reviews/${Date.now()}_${i}.${fileExt}`;
 
     const { error } = await supabaseClient
       .storage
@@ -2661,6 +2661,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
