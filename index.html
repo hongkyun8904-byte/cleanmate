@@ -2278,8 +2278,37 @@ function renderReviews() {
     </div>
   `).join("");
 }
+async function uploadReviewPhotos(files) {
+  const uploadedUrls = [];
 
-function addReview() {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+
+    const fileExt = file.name.split(".").pop();
+    const fileName = `review_${Date.now()}_${i}.${fileExt}`;
+
+    const { error } = await supabaseClient
+      .storage
+      .from("review-photos")
+      .upload(fileName, file);
+
+    if (error) {
+      alert("사진 업로드 실패");
+      console.error(error);
+      return [];
+    }
+
+    const { data } = supabaseClient
+      .storage
+      .from("review-photos")
+      .getPublicUrl(fileName);
+
+    uploadedUrls.push(data.publicUrl);
+  }
+
+  return uploadedUrls;
+}
+async function addReview() {
   const author = document.getElementById("reviewAuthor").value.trim();
   const text = document.getElementById("reviewText").value.trim();
   const photoInput = document.getElementById("reviewPhotos");
@@ -2294,20 +2323,27 @@ function addReview() {
     return;
   }
 
-  let photoNames = [];
+  let photoUrls = [];
+
   if (photoInput && photoInput.files && photoInput.files.length > 0) {
-    photoNames = Array.from(photoInput.files).map(file => file.name);
+    if (photoInput.files.length > 10) {
+      alert("사진은 최대 10장까지만 업로드할 수 있습니다.");
+      return;
+    }
+
+    // ✅ Supabase Storage 실제 업로드
+    photoUrls = await uploadReviewPhotos(photoInput.files);
   }
 
   reviews.unshift({
     author: author,
     text: text,
     star: adminReviewScore,   // 5 / 4 / 2
-    photo: "",
-    photos: photoNames,
+    photos: photoUrls,        // ⭐ 실제 이미지 URL 배열
     visible: true
   });
 
+  // 입력 초기화
   adminReviewScore = null;
   document.getElementById("reviewAuthor").value = "";
   document.getElementById("reviewText").value = "";
@@ -2522,6 +2558,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
