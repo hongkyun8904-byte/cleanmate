@@ -1816,6 +1816,8 @@ let companies = [
    리뷰 데이터 (관리자 전용)
    =============================== */
   let reviews = [];
+  let adminReviews = [];
+let publicReviews = [];
   async function loadAdminReviews() {
   const { data, error } = await supabaseClient
     .from("reviews")
@@ -1828,7 +1830,7 @@ let companies = [
     return;
   }
 
-  reviews = data || [];
+  adminReviews = data || [];
   renderReviews();
 }
 
@@ -1844,8 +1846,9 @@ async function loadPublicReviews() {
     return;
   }
 
-  reviews = data || [];
+  publicReviews = data || [];
   renderPublicReviews();
+  renderBAGallery();
 }
   
 let adminReviewScore = null;
@@ -2192,6 +2195,7 @@ ${order.side_clean_time ? `사이청소 시간: ${order.side_clean_time}<br>` : 
 `).join("");
 }
   
+  
 let orderAutoRefreshTimer = null;
 
 function showAdminTab(tab) {
@@ -2320,45 +2324,24 @@ function renderReviews() {
   const list = document.getElementById("reviewList");
   if (!list) return;
 
-  list.innerHTML = reviews.map((r, i) => `
+  list.innerHTML = adminReviews.map((r, i) => `
     <div style="border-bottom:1px solid #eee;padding:10px 0;">
-      
-      <!-- 별점 -->
       <strong>${"★".repeat(r.star)}</strong><br/>
-
-      <!-- 작성자 -->
       <b>${r.author}</b><br/>
-
-      <!-- 리뷰 내용 -->
       <div style="font-size:13px;">${r.text}</div>
 
-      <!-- 📸 후기 사진 여러 장 표시 -->
       ${
         r.photos && r.photos.length > 0
           ? `
-          <div style="
-            display:grid;
-            grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
-            gap:6px;
-            margin-top:6px;
-          ">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;margin-top:6px;">
             ${r.photos.map(url => `
-              <img
-                src="${url}"
-                style="
-                  width:100%;
-                  height:80px;
-                  object-fit:cover;
-                  border-radius:6px;
-                "
-              />
+              <img src="${url}" style="width:100%;height:80px;object-fit:cover;border-radius:6px;" />
             `).join("")}
           </div>
           `
           : ""
       }
 
-      <!-- 관리 버튼 -->
       <div style="margin-top:6px;">
         <button onclick="toggleReview(${i})">
           ${r.visible ? "노출중" : "비노출"}
@@ -2368,6 +2351,7 @@ function renderReviews() {
     </div>
   `).join("");
 }
+    
 async function uploadReviewPhotos(files) {
   const uploadedUrls = [];
 
@@ -2399,6 +2383,7 @@ async function uploadReviewPhotos(files) {
   return uploadedUrls;
 }
 async function addReview() {
+  // 🔒 주문 1회 후기 제한
   const { data: exists } = await supabaseClient
     .from("reviews")
     .select("id")
@@ -2410,31 +2395,28 @@ async function addReview() {
     return;
   }
 
-  const author = document.getElementById("reviewAuthor").value.trim();
-  const text = document.getElementById("reviewText").value.trim();
-  const photoInput = document.getElementById("reviewPhotos");
-
-  // 1️⃣ 주문 선택 확인
+  // 🔎 필수 값
   if (!window.selectedOrderId) {
     alert("후기를 작성할 주문을 먼저 선택해주세요.");
     return;
   }
 
-  // 2️⃣ 만족도 선택 확인
   if (!adminReviewScore) {
     alert("만족도를 먼저 선택해주세요.");
     return;
   }
 
-  // 3️⃣ 필수값 확인
+  const author = document.getElementById("reviewAuthor").value.trim();
+  const text = document.getElementById("reviewText").value.trim();
+  const photoInput = document.getElementById("reviewPhotos");
+
   if (!author || !text) {
     alert("작성자와 리뷰 내용은 필수입니다.");
     return;
   }
 
-  // 4️⃣ 사진 업로드
+  // 📸 사진 업로드
   let photoUrls = [];
-
   if (photoInput && photoInput.files.length > 0) {
     if (photoInput.files.length > 10) {
       alert("사진은 최대 10장까지만 업로드할 수 있습니다.");
@@ -2443,13 +2425,13 @@ async function addReview() {
     photoUrls = await uploadReviewPhotos(photoInput.files);
   }
 
-  // 5️⃣ Supabase reviews 테이블에 저장
+  // 💾 DB 저장
   const { error } = await supabaseClient
     .from("reviews")
     .insert([{
       order_id: window.selectedOrderId,
-      author: author,
-      text: text,
+      author,
+      text,
       star: adminReviewScore,
       photos: photoUrls,
       visible: true
@@ -2461,7 +2443,7 @@ async function addReview() {
     return;
   }
 
-  // 6️⃣ 입력값 초기화
+  // 🔄 초기화
   adminReviewScore = null;
   document.getElementById("reviewAuthor").value = "";
   document.getElementById("reviewText").value = "";
@@ -2469,48 +2451,10 @@ async function addReview() {
 
   alert("후기가 등록되었습니다.");
 
-  // 7️⃣ 다시 불러오기
-  loadPublicReviews();
-}
-
-
-async function toggleReview(i) {
-  const review = reviews[i];
-
-  const { error } = await supabaseClient
-    .from("reviews")
-    .update({ visible: !review.visible })
-    .eq("id", review.id);
-
-  if (error) {
-    alert("노출 상태 변경 실패");
-    console.error(error);
-    return;
-  }
-
   loadAdminReviews();
   loadPublicReviews();
 }
 
-async function deleteReview(i) {
-  const review = reviews[i];
-
-  if (!confirm("이 리뷰를 삭제할까요?")) return;
-
-  const { error } = await supabaseClient
-    .from("reviews")
-    .delete()
-    .eq("id", review.id);
-
-  if (error) {
-    alert("리뷰 삭제 실패");
-    console.error(error);
-    return;
-  }
-
-  loadAdminReviews();
-  loadPublicReviews();
-}
 /* ===============================
    고객 화면 리뷰 렌더링
    =============================== */
@@ -2518,60 +2462,49 @@ function renderPublicReviews() {
   const box = document.getElementById("publicReviewList");
   if (!box) return;
 
-  box.innerHTML = reviews
-    .filter(r => r.visible)
-    .map(r => `
-      <div style="
-        background:#fff;
-        border-radius:16px;
-        padding:14px;
-        box-shadow:0 6px 18px rgba(0,0,0,0.06);
-        font-size:13px;
-      ">
-        <!-- 별점 -->
-        <div style="color:#f5a623;font-size:14px;margin-bottom:4px;">
-          ${"★".repeat(r.star)}
-        </div>
+  box.innerHTML = publicReviews.map(r => `
+    <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.06);font-size:13px;">
+      <div style="color:#f5a623;font-size:14px;margin-bottom:4px;">
+        ${"★".repeat(r.star)}
+      </div>
+      <div style="margin-bottom:6px;font-weight:600;">
+        ${r.author}
+      </div>
+      <div style="color:#4b5665;">
+        ${r.text}
+      </div>
 
-        <!-- 작성자 -->
-        <div style="margin-bottom:6px;font-weight:600;">
-          ${r.author}
-        </div>
+      ${
+        r.photos && r.photos.length > 0
+          ? `
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;margin-top:10px;">
+            ${r.photos.map(url => `
+              <img src="${url}" style="width:100%;height:90px;object-fit:cover;border-radius:8px;" />
+            `).join("")}
+          </div>
+          `
+          : ""
+      }
 
-        <!-- 후기 내용 -->
-        <div style="color:#4b5665;line-height:1.4;">
-          ${r.text}
-        </div>
+      <div style="margin-top:10px;font-size:11px;color:#8a94a6;">
+        클린메이트 실제 이용 고객 후기
+      </div>
+    </div>
+  `).join("");
+}
+function renderBAGallery() {
+  const box = document.getElementById("baGallery");
+  if (!box) return;
 
-        <!-- 📸 후기 사진 갤러리 -->
-        ${
-          r.photos && r.photos.length > 0
-            ? `
-            <div style="
-              display:grid;
-              grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
-              gap:6px;
-              margin-top:10px;
-            ">
-              ${r.photos.map(url => `
-                <img
-                  src="${url}"
-                  style="
-                    width:100%;
-                    height:90px;
-                    object-fit:cover;
-                    border-radius:8px;
-                  "
-                />
-              `).join("")}
-            </div>
-            `
-            : ""
-        }
-
-        <!-- 신뢰 문구 -->
-        <div style="margin-top:10px;font-size:11px;color:#8a94a6;">
-          클린메이트 실제 이용 고객 후기
+  box.innerHTML = publicReviews
+    .filter(r => r.visible && r.photos && r.photos.length > 0)
+    .flatMap(r => r.photos)
+    .map(url => `
+      <div class="ba-card">
+        <img src="${url}" />
+        <div class="ba-card-footer">
+          <span>실제 고객 작업</span>
+          <span class="tag">후기 기반</span>
         </div>
       </div>
     `)
@@ -2728,6 +2661,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
