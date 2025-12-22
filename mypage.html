@@ -70,10 +70,42 @@
 
 <div class="wrap">
 
-  <div class="logo">
-    <img src="logo-cleanmate.png" alt="CleanMate">
-  </div>
+<!-- ✅ 상단 로고 (크게 + 메인 이동) -->
+<div style="text-align:center;margin:16px 0 10px;">
+  <a href="index.html">
+    <img 
+      src="logo-cleanmate.png"
+      alt="CleanMate 로고"
+      style="height:72px;opacity:0.95;"
+    >
+  </a>
+</div>
+<div style="
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:16px;
+">
+  <button onclick="history.back()" style="
+    padding:8px 12px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    background:#fff;
+    cursor:pointer;
+  ">
+    ← 뒤로
+  </button>
 
+  <button onclick="goHome()" style="
+    padding:8px 14px;
+    border-radius:10px;
+    border:none;
+    background:#0288d1;
+    color:#fff;
+    cursor:pointer;
+  ">
+    홈으로
+  </button>
+</div>
   <div class="card">
     <h1>예약 상태 확인</h1>
     <div class="label">예약 시 입력하신 휴대폰 번호를 입력해주세요.</div>
@@ -91,6 +123,10 @@ const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
 const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  function goHome(){
+  window.location.href = "index.html";
+}
+  
 async function loadMyOrder(){
   const phone = document.getElementById("phoneInput").value.trim();
   const box = document.getElementById("result");
@@ -152,4 +188,5 @@ async function loadMyOrder(){
 </script>
 
 </body>
+
 </html>
