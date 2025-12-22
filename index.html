@@ -2126,17 +2126,6 @@ async function loadOrders() {
     <div style="font-weight:700;">
       ${order.name} (${order.phone})
     </div>
-    <button
-  style="
-    margin-top:6px;
-    padding:6px 10px;
-    border-radius:6px;
-    border:1px solid #0288d1;
-    background:#fff;
-    color:#0288d1;
-    font-size:12px;
-    cursor:pointer;
-  "
 <button
   style="
     margin-top:6px;
@@ -2485,13 +2474,14 @@ async function addReview() {
   // 6) DB 저장 (order_id 변수 절대 실수 금지!)
   const { error } = await supabaseClient
     .from("reviews")
-    .insert([{
-      order_id: window.selectedOrderId,
-      text,
-      star: adminReviewScore,
-      photos: photoUrls,
-      visible: true
-    }]);
+.insert([{
+  order_id: window.selectedOrderId,
+  author,
+  text,
+  star: adminReviewScore,
+  photos: photoUrls,
+  visible: true
+}]);
 
   if (error) {
     console.error(error);
@@ -2717,6 +2707,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
