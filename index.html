@@ -675,6 +675,21 @@
   background:#0288d1;
   color:#fff;
 }
+  .review-btn{
+  flex:1;
+  padding:10px;
+  border-radius:999px;
+  border:1.5px solid #0288d1;
+  background:#fff;
+  color:#0288d1;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.review-btn:hover{
+  background:#e3f2fd;
+}  
   </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
@@ -1795,7 +1810,27 @@ let reviews = [
     visible: true
   }
 ];
+  
+let adminReviewScore = null;
 
+function selectAdminReviewScore(score){
+  adminReviewScore = score;
+  alert(
+    score === 5 ? "너무 만족해요 선택됨" :
+    score === 4 ? "만족해요 선택됨" :
+    "아쉬워요 선택됨"
+  );
+}
+
+function checkAdminReviewPhotos(){
+  const input = document.getElementById("reviewPhotos");
+  if (!input) return;
+
+  if (input.files.length > 10) {
+    alert("사진은 최대 10장까지만 업로드할 수 있습니다.");
+    input.value = "";
+  }
+}
 /* ===============================
    관리자 로그인 (하드코딩 방식)
    =============================== */
@@ -2183,36 +2218,45 @@ if (tab === "orders") {
   /* ===============================
      리뷰 관리
      =============================== */
-  if (tab === "reviews") {
-    box.innerHTML = `
-      <h3>⭐ 리뷰 관리</h3>
+ if (tab === "reviews") {
+  box.innerHTML = `
+    <h3>⭐ 리뷰 관리</h3>
 
-      <div style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:8px;">
-        <h4>리뷰 추가</h4>
+    <div style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:8px;">
+      <h4>리뷰 추가</h4>
 
-        <input id="reviewAuthor" placeholder="작성자"
-          style="width:100%;padding:8px;margin-bottom:6px;" />
-
-        <textarea id="reviewText" placeholder="리뷰 내용"
-          style="width:100%;padding:8px;height:80px;margin-bottom:6px;"></textarea>
-
-        <select id="reviewStar" style="width:100%;padding:8px;margin-bottom:6px;">
-          <option value="5">★★★★★</option>
-          <option value="4">★★★★☆</option>
-          <option value="3">★★★☆☆</option>
-        </select>
-
-        <input id="reviewPhoto" placeholder="사진 URL (선택)"
-          style="width:100%;padding:8px;margin-bottom:6px;" />
-
-        <button onclick="addReview()">리뷰 추가</button>
+      <!-- 만족도 버튼(3개) -->
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button type="button" class="review-btn" onclick="selectAdminReviewScore(5)">😊 너무 만족해요</button>
+        <button type="button" class="review-btn" onclick="selectAdminReviewScore(4)">🙂 만족해요</button>
+        <button type="button" class="review-btn" onclick="selectAdminReviewScore(2)">😐 아쉬워요</button>
       </div>
 
-      <div id="reviewList" style="margin-top:16px;"></div>
-    `;
-    renderReviews();
-    return;
-  }
+      <input id="reviewAuthor" placeholder="작성자(예: 김**)"
+        style="width:100%;padding:8px;margin-bottom:6px;" />
+
+      <textarea id="reviewText" placeholder="리뷰 내용"
+        style="width:100%;padding:8px;height:80px;margin-bottom:6px;"></textarea>
+
+      <!-- 📸 사진 업로드 (최대 10장) -->
+      <div style="margin:8px 0;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">
+          후기 사진 업로드 (최대 10장)
+        </div>
+        <input id="reviewPhotos" type="file" accept="image/*" multiple onchange="checkAdminReviewPhotos()" />
+        <div style="font-size:11px;color:#8a94a6;margin-top:4px;">
+          지금은 “파일 선택”만 되고, DB/Storage 저장은 다음 단계에서 연결할거야.
+        </div>
+      </div>
+
+      <button onclick="addReview()">리뷰 추가</button>
+    </div>
+
+    <div id="reviewList" style="margin-top:16px;"></div>
+  `;
+  renderReviews();
+  return;
+}
 }
 
 function renderReviews() {
@@ -2236,25 +2280,43 @@ function renderReviews() {
 }
 
 function addReview() {
-  const author = document.getElementById("reviewAuthor").value;
-  const text = document.getElementById("reviewText").value;
-  const star = parseInt(document.getElementById("reviewStar").value, 10);
-  const photo = document.getElementById("reviewPhoto").value;
+  const author = document.getElementById("reviewAuthor").value.trim();
+  const text = document.getElementById("reviewText").value.trim();
+  const photoInput = document.getElementById("reviewPhotos");
+
+  if (!adminReviewScore) {
+    alert("만족도(너무 만족해요 / 만족해요 / 아쉬워요)를 먼저 선택해주세요.");
+    return;
+  }
 
   if (!author || !text) {
     alert("작성자와 리뷰 내용은 필수입니다.");
     return;
   }
 
+  let photoNames = [];
+  if (photoInput && photoInput.files && photoInput.files.length > 0) {
+    photoNames = Array.from(photoInput.files).map(file => file.name);
+  }
+
   reviews.unshift({
-    author,
-    text,
-    star,
-    photo,
+    author: author,
+    text: text,
+    star: adminReviewScore,   // 5 / 4 / 2
+    photo: "",
+    photos: photoNames,
     visible: true
   });
 
+  adminReviewScore = null;
+  document.getElementById("reviewAuthor").value = "";
+  document.getElementById("reviewText").value = "";
+  if (photoInput) {
+    photoInput.value = "";
+  }
+
   renderReviews();
+  renderPublicReviews();
 }
 
 function toggleReview(i) {
@@ -2460,6 +2522,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
