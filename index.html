@@ -682,6 +682,7 @@
           <div class="logo-text-main">CleanMate</div>
           <div class="logo-text-sub">청소 견적부터 예약까지, 한 번에</div>
         </div>
+          
       </div>
       <div class="header-cta">
         <span>실제 청소 기준 단가로 자동 계산</span>
@@ -696,10 +697,27 @@
     <section class="hero">
       <!-- LEFT -->
       <div class="hero-card">
-        <div class="hero-badge">
-          <span class="icon">★</span>
-          청소 견적부터 예약까지, 한 번에
-        </div>
+ 
+  <!-- ✅ 기존 고객 빠른 진입 -->
+  <button onclick="goMyPage()" style="
+    width:100%;
+    margin-bottom:14px;
+    padding:12px 18px;
+    border-radius:999px;
+    border:1.5px solid #0288d1;
+    background:#ffffff;
+    color:#0288d1;
+    font-size:14px;
+    font-weight:800;
+    cursor:pointer;
+  ">
+    📋 나의 예약 · 배정 조회
+  </button>
+
+  <div class="hero-badge">
+    <span class="icon">★</span>
+    청소 견적부터 예약까지, 한 번에
+  </div>
 
         <h1 class="hero-title">
           불투명한 견적과 갑작스러운 추가요금,<br />
@@ -1341,7 +1359,9 @@ function updateApplyButtonText() {
     const el = document.getElementById("estimate-section");
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }
-
+function goMyPage() {
+  window.location.href = "mypage.html";
+}
  function updateCounter(type, delta) {
   let id = "";
 
@@ -2376,6 +2396,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
