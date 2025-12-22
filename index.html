@@ -1801,15 +1801,38 @@ let companies = [
 /* ===============================
    리뷰 데이터 (관리자 전용)
    =============================== */
-let reviews = [
-  {
-    author: "김**",
-    text: "CleanMate 덕분에 처음 안내받은 가격 그대로 청소를 받아서 너무 만족했습니다.",
-    star: 5,
-    photo: "",
-    visible: true
+  let reviews = [];
+  async function loadAdminReviews() {
+  const { data, error } = await supabaseClient
+    .from("reviews")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    alert("리뷰 데이터를 불러오지 못했습니다.");
+    return;
   }
-];
+
+  reviews = data || [];
+  renderReviews();
+}
+
+async function loadPublicReviews() {
+  const { data, error } = await supabaseClient
+    .from("reviews")
+    .select("*")
+    .eq("visible", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  reviews = data || [];
+  renderPublicReviews();
+}
   
 let adminReviewScore = null;
 
@@ -1832,7 +1855,7 @@ function checkAdminReviewPhotos(){
   }
 }
 /* ===============================
-   관리자 로그인 (하드코딩 방식)
+   관리자 로그인 
    =============================== */
 function adminLogin() {
   const email = document.getElementById("adminEmail").value;
@@ -1856,14 +1879,14 @@ function openAdminDashboard() {
   document.getElementById("adminModal").style.display = "none";
   document.getElementById("adminDashboard").style.display = "block";
   loadAdminStats();  
-  showAdminTab("reviews"); // 기본으로 리뷰 탭 열기
+  showAdminTab("reviews"); 
 }
 
 function closeAdminDashboard() {
   document.getElementById("adminDashboard").style.display = "none";
 }
 /* ===============================
-   관리자 주문 관리 (핵심)
+   관리자 주문 관리
    =============================== */
   async function loadAdminStats() {
   // 1️⃣ 전체 주문 수
@@ -1882,7 +1905,7 @@ function closeAdminDashboard() {
     .select("*", { count: "exact", head: true })
     .eq("status", "배정완료");
     
-// 4️⃣ 평균 객단가 (실전)
+// 4️⃣ 평균 객단가 
 const { data: priceData, error: priceError } =
   await supabaseClient
     .from("orders")
@@ -1899,7 +1922,7 @@ if (!priceError && priceData.length > 0) {
   avgPrice = Math.round(sum / priceData.length).toLocaleString("ko-KR");
 }
 
-// 5️⃣ 특수청소 비중 (지금은 임시)
+// 5️⃣ 특수청소 비중 
 const specialCount = "-";
 
   // 화면 반영
@@ -2113,7 +2136,7 @@ async function loadOrders() {
   "
   onclick="window.selectedOrderId='${order.id}'; alert('이 주문으로 후기 작성 선택됨');"
 >
-  📝 이 주문으로 후기 작성
+  📝 
 </button>
 
 <div style="margin-top:6px;color:#555;">
@@ -2194,7 +2217,7 @@ if (tab === "orders") {
   // 최초 1회 로드
   loadOrders();
 
-  // 🔥 5초마다 자동 새로고침
+
   orderAutoRefreshTimer = setInterval(() => {
     loadOrders();
   }, 5000);
@@ -2230,10 +2253,10 @@ if (tab === "orders") {
     return;
   }
 
-  /* ===============================
+ /* ===============================
      리뷰 관리
      =============================== */
- if (tab === "reviews") {
+if (tab === "reviews") {
   box.innerHTML = `
     <h3>⭐ 리뷰 관리</h3>
 
@@ -2253,15 +2276,18 @@ if (tab === "orders") {
       <textarea id="reviewText" placeholder="리뷰 내용"
         style="width:100%;padding:8px;height:80px;margin-bottom:6px;"></textarea>
 
-      <!-- 📸 사진 업로드 (최대 10장) -->
+      <!-- 📸 사진 업로드 -->
       <div style="margin:8px 0;">
         <div style="font-size:13px;font-weight:600;margin-bottom:4px;">
           후기 사진 업로드 (최대 10장)
         </div>
-        <input id="reviewPhotos" type="file" accept="image/*" multiple onchange="checkAdminReviewPhotos()" />
-        <div style="font-size:11px;color:#8a94a6;margin-top:4px;">
-          지금은 “파일 선택”만 되고, DB/Storage 저장은 다음 단계에서 연결할거야.
-        </div>
+        <input
+          id="reviewPhotos"
+          type="file"
+          accept="image/*"
+          multiple
+          onchange="checkAdminReviewPhotos()"
+        />
       </div>
 
       <button onclick="addReview()">리뷰 추가</button>
@@ -2269,7 +2295,9 @@ if (tab === "orders") {
 
     <div id="reviewList" style="margin-top:16px;"></div>
   `;
-  renderReviews();
+
+  loadAdminReviews();
+
   return;
 }
 }
@@ -2357,84 +2385,117 @@ async function uploadReviewPhotos(files) {
   return uploadedUrls;
 }
 async function addReview() {
-  const author = document.getElementById("reviewAuthor").value.trim();
-  const text = document.getElementById("reviewText").value.trim();
-  const photoInput = document.getElementById("reviewPhotos");
+  const { data: exists } = await supabaseClient
+    .from("reviews")
+    .select("id")
+    .eq("order_id", window.selectedOrderId)
+    .single();
 
-  /* 🔒 주문 1건당 후기 1회 제한 */
-  if (!window.selectedOrderId) {
-    alert("후기를 작성할 주문이 선택되지 않았습니다.");
-    return;
-  }
-
-  const alreadyReviewed = reviews.find(
-    r => r.order_id === window.selectedOrderId
-  );
-
-  if (alreadyReviewed) {
+  if (exists) {
     alert("이 주문에는 이미 후기가 등록되어 있습니다.");
     return;
   }
 
-  /* 만족도 체크 */
-  if (!adminReviewScore) {
-    alert("만족도(너무 만족해요 / 만족해요 / 아쉬워요)를 먼저 선택해주세요.");
+  const author = document.getElementById("reviewAuthor").value.trim();
+  const text = document.getElementById("reviewText").value.trim();
+  const photoInput = document.getElementById("reviewPhotos");
+
+  // 1️⃣ 주문 선택 확인
+  if (!window.selectedOrderId) {
+    alert("후기를 작성할 주문을 먼저 선택해주세요.");
     return;
   }
 
-  /* 필수 입력값 */
+  // 2️⃣ 만족도 선택 확인
+  if (!adminReviewScore) {
+    alert("만족도를 먼저 선택해주세요.");
+    return;
+  }
+
+  // 3️⃣ 필수값 확인
   if (!author || !text) {
     alert("작성자와 리뷰 내용은 필수입니다.");
     return;
   }
 
+  // 4️⃣ 사진 업로드
   let photoUrls = [];
 
-  /* 📸 사진 업로드 (최대 10장) */
-  if (photoInput && photoInput.files && photoInput.files.length > 0) {
+  if (photoInput && photoInput.files.length > 0) {
     if (photoInput.files.length > 10) {
       alert("사진은 최대 10장까지만 업로드할 수 있습니다.");
       return;
     }
-
     photoUrls = await uploadReviewPhotos(photoInput.files);
   }
 
-  /* ✅ 리뷰 저장 */
-  reviews.unshift({
-    order_id: window.selectedOrderId,
-    author: author,
-    text: text,
-    star: adminReviewScore,     // 5 / 4 / 2
-    photos: photoUrls,          // 여러 장 URL
-    visible: true
-  });
+  // 5️⃣ Supabase reviews 테이블에 저장
+  const { error } = await supabaseClient
+    .from("reviews")
+    .insert([{
+      order_id: window.selectedOrderId,
+      author: author,
+      text: text,
+      star: adminReviewScore,
+      photos: photoUrls,
+      visible: true
+    }]);
 
-  /* 입력 초기화 */
+  if (error) {
+    console.error(error);
+    alert("후기 저장 실패");
+    return;
+  }
+
+  // 6️⃣ 입력값 초기화
   adminReviewScore = null;
   document.getElementById("reviewAuthor").value = "";
   document.getElementById("reviewText").value = "";
   if (photoInput) photoInput.value = "";
 
-  renderReviews();
-  renderPublicReviews();
+  alert("후기가 등록되었습니다.");
 
-  alert("후기가 정상적으로 등록되었습니다.");
+  // 7️⃣ 다시 불러오기
+  loadPublicReviews();
 }
 
 
-function toggleReview(i) {
-  reviews[i].visible = !reviews[i].visible;
-  renderReviews();
-  renderPublicReviews();
-}
+async function toggleReview(i) {
+  const review = reviews[i];
 
-function deleteReview(i) {
-  if (confirm("이 리뷰를 삭제할까요?")) {
-    reviews.splice(i, 1);
-    renderReviews();
-    renderPublicReviews();
+  const { error } = await supabaseClient
+    .from("reviews")
+    .update({ visible: !review.visible })
+    .eq("id", review.id);
+
+  if (error) {
+    alert("노출 상태 변경 실패");
+    console.error(error);
+    return;
   }
+
+  loadAdminReviews();
+  loadPublicReviews();
+}
+
+async function deleteReview(i) {
+  const review = reviews[i];
+
+  if (!confirm("이 리뷰를 삭제할까요?")) return;
+
+  const { error } = await supabaseClient
+    .from("reviews")
+    .delete()
+    .eq("id", review.id);
+
+  if (error) {
+    alert("리뷰 삭제 실패");
+    console.error(error);
+    return;
+  }
+
+  loadAdminReviews();
+  loadPublicReviews();
 }
 /* ===============================
    고객 화면 리뷰 렌더링
@@ -2503,7 +2564,7 @@ function renderPublicReviews() {
     .join("");
 }
 document.addEventListener("DOMContentLoaded", () => {
-  renderPublicReviews();
+  loadPublicReviews();
 });
 
 function renderCompanies() {
@@ -2653,6 +2714,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
