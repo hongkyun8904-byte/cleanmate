@@ -2100,6 +2100,21 @@ async function loadOrders() {
     <div style="font-weight:700;">
       ${order.name} (${order.phone})
     </div>
+    <button
+  style="
+    margin-top:6px;
+    padding:6px 10px;
+    border-radius:6px;
+    border:1px solid #0288d1;
+    background:#fff;
+    color:#0288d1;
+    font-size:12px;
+    cursor:pointer;
+  "
+  onclick="window.selectedOrderId='${order.id}'; alert('이 주문으로 후기 작성 선택됨');"
+>
+  📝 이 주문으로 후기 작성
+</button>
 
 <div style="margin-top:6px;color:#555;">
   주소: ${order.address || "-"}<br>
@@ -2265,10 +2280,43 @@ function renderReviews() {
 
   list.innerHTML = reviews.map((r, i) => `
     <div style="border-bottom:1px solid #eee;padding:10px 0;">
+      
+      <!-- 별점 -->
       <strong>${"★".repeat(r.star)}</strong><br/>
+
+      <!-- 작성자 -->
       <b>${r.author}</b><br/>
+
+      <!-- 리뷰 내용 -->
       <div style="font-size:13px;">${r.text}</div>
-      ${r.photo ? `<img src="${r.photo}" style="max-width:120px;margin-top:6px;">` : ""}
+
+      <!-- 📸 후기 사진 여러 장 표시 -->
+      ${
+        r.photos && r.photos.length > 0
+          ? `
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
+            gap:6px;
+            margin-top:6px;
+          ">
+            ${r.photos.map(url => `
+              <img
+                src="${url}"
+                style="
+                  width:100%;
+                  height:80px;
+                  object-fit:cover;
+                  border-radius:6px;
+                "
+              />
+            `).join("")}
+          </div>
+          `
+          : ""
+      }
+
+      <!-- 관리 버튼 -->
       <div style="margin-top:6px;">
         <button onclick="toggleReview(${i})">
           ${r.visible ? "노출중" : "비노출"}
@@ -2313,11 +2361,28 @@ async function addReview() {
   const text = document.getElementById("reviewText").value.trim();
   const photoInput = document.getElementById("reviewPhotos");
 
+  /* 🔒 주문 1건당 후기 1회 제한 */
+  if (!window.selectedOrderId) {
+    alert("후기를 작성할 주문이 선택되지 않았습니다.");
+    return;
+  }
+
+  const alreadyReviewed = reviews.find(
+    r => r.order_id === window.selectedOrderId
+  );
+
+  if (alreadyReviewed) {
+    alert("이 주문에는 이미 후기가 등록되어 있습니다.");
+    return;
+  }
+
+  /* 만족도 체크 */
   if (!adminReviewScore) {
     alert("만족도(너무 만족해요 / 만족해요 / 아쉬워요)를 먼저 선택해주세요.");
     return;
   }
 
+  /* 필수 입력값 */
   if (!author || !text) {
     alert("작성자와 리뷰 내용은 필수입니다.");
     return;
@@ -2325,35 +2390,38 @@ async function addReview() {
 
   let photoUrls = [];
 
+  /* 📸 사진 업로드 (최대 10장) */
   if (photoInput && photoInput.files && photoInput.files.length > 0) {
     if (photoInput.files.length > 10) {
       alert("사진은 최대 10장까지만 업로드할 수 있습니다.");
       return;
     }
 
-    // ✅ Supabase Storage 실제 업로드
     photoUrls = await uploadReviewPhotos(photoInput.files);
   }
 
+  /* ✅ 리뷰 저장 */
   reviews.unshift({
+    order_id: window.selectedOrderId,
     author: author,
     text: text,
-    star: adminReviewScore,   // 5 / 4 / 2
-    photos: photoUrls,        // ⭐ 실제 이미지 URL 배열
+    star: adminReviewScore,     // 5 / 4 / 2
+    photos: photoUrls,          // 여러 장 URL
     visible: true
   });
 
-  // 입력 초기화
+  /* 입력 초기화 */
   adminReviewScore = null;
   document.getElementById("reviewAuthor").value = "";
   document.getElementById("reviewText").value = "";
-  if (photoInput) {
-    photoInput.value = "";
-  }
+  if (photoInput) photoInput.value = "";
 
   renderReviews();
   renderPublicReviews();
+
+  alert("후기가 정상적으로 등록되었습니다.");
 }
+
 
 function toggleReview(i) {
   reviews[i].visible = !reviews[i].visible;
@@ -2585,6 +2653,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
