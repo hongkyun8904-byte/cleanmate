@@ -2151,13 +2151,25 @@ async function loadOrders() {
     font-size:12px;
     cursor:pointer;
   "
- onclick="
-  window.selectedOrderId='${order.id}';
-  document.getElementById('selectedOrderInfo').innerText =
-    '선택된 주문: ${order.name} (${order.phone})';
-"
+<button
+  style="
+    margin-top:6px;
+    padding:6px 10px;
+    border-radius:6px;
+    border:1px solid #0288d1;
+    background:#fff;
+    color:#0288d1;
+    font-size:12px;
+    cursor:pointer;
+    font-weight:600;
+  "
+  onclick="
+    window.selectedOrderId='${order.id}';
+    document.getElementById('selectedOrderInfo').innerText =
+      '선택된 주문: ${order.name} (${order.phone})';
+  "
 >
-  📝 
+  📝 리뷰 선택
 </button>
 
 <div style="margin-top:6px;color:#555;">
@@ -2720,6 +2732,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
