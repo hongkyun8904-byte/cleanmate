@@ -658,6 +658,23 @@
     .footer-inner strong {
       color: #5f6a7a;
     }
+    
+/* ✅ 메인 탭 버튼 */
+.tab-btn{
+  padding:10px 18px;
+  border-radius:999px;
+  border:1.5px solid #0288d1;
+  background:#fff;
+  color:#0288d1;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.tab-btn.active{
+  background:#0288d1;
+  color:#fff;
+}
   </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
@@ -727,7 +744,7 @@
         </ul>
 
         <div class="hero-cta-row">
-          <button class="hero-main-btn" type="button" onclick="scrollToEstimate()">
+          <button class="hero-main-btn" type="button" onclick="showMainSection('estimate')">
             <span class="icon">⚡</span>
             지금 청소 견적 바로 받아보기
           </button>
@@ -788,6 +805,27 @@
         </div>
       </div>
     </section>
+    <!-- ===============================
+     메인 섹션 전환 버튼
+     =============================== -->
+<div style="
+  max-width:1200px;
+  margin:0 auto 24px;
+  padding:0 20px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+">
+  <button class="tab-btn" onclick="showMainSection('estimate')">
+    🧾 견적
+  </button>
+  <button class="tab-btn" onclick="showMainSection('review')">
+    ⭐ 고객 후기
+  </button>
+  <button class="tab-btn" onclick="showMainSection('gallery')">
+    🧼 Before & After
+  </button>
+</div>  
 
     <!-- 견적 입력 SECTION -->
     <section class="section" id="estimate-section">
@@ -1112,7 +1150,7 @@ document.getElementById("sideClean").addEventListener("change", function () {
 </section>
 
     <!-- Before & After GALLERY -->
-    <section class="section">
+    <section class="section" id="gallery-section">
       <div class="section-title-row">
         <div>
           <div class="section-title">Before &amp; After 갤러리</div>
@@ -1350,6 +1388,41 @@ function updateApplyButtonText() {
     const el = document.getElementById("estimate-section");
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
+/* ✅ 메인 섹션 탭 전환 */
+function showMainSection(type){
+
+  // 1️⃣ 전부 숨김
+  document.getElementById("estimate-section").style.display = "none";
+  document.getElementById("review-section").style.display = "none";
+  document.getElementById("gallery-section").style.display = "none";
+
+  // 2️⃣ 버튼 active 제거
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  // 3️⃣ 선택한 것만 보여주기
+  if(type === "estimate"){
+    document.getElementById("estimate-section").style.display = "block";
+    document.querySelectorAll(".tab-btn")[0].classList.add("active");
+  }
+
+  if(type === "review"){
+    document.getElementById("review-section").style.display = "block";
+    document.querySelectorAll(".tab-btn")[1].classList.add("active");
+  }
+
+  if(type === "gallery"){
+    document.getElementById("gallery-section").style.display = "block";
+    document.querySelectorAll(".tab-btn")[2].classList.add("active");
+  }
+}
+
+/* ✅ 처음 화면은 견적만 */
+document.addEventListener("DOMContentLoaded", () => {
+  showMainSection("estimate");
+});
 function goMyPage() {
   window.location.href = "mypage.html";
 }
@@ -2387,6 +2460,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
