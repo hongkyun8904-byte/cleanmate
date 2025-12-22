@@ -2513,9 +2513,9 @@ function renderPublicReviews() {
       <div style="color:#f5a623;font-size:14px;margin-bottom:4px;">
         ${"★".repeat(r.star)}
       </div>
-      <div style="margin-bottom:6px;font-weight:600;">
-        ${r.author}
-      </div>
+     <div style="margin-bottom:6px;font-weight:600;">
+  ${r.author || "실제 이용 고객"}
+</div>
       <div style="color:#4b5665;">
         ${r.text}
       </div>
@@ -2707,6 +2707,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
