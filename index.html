@@ -2385,23 +2385,50 @@ function renderPublicReviews() {
         box-shadow:0 6px 18px rgba(0,0,0,0.06);
         font-size:13px;
       ">
-        <div style="color:#f5a623;font-size:14px;">
+        <!-- 별점 -->
+        <div style="color:#f5a623;font-size:14px;margin-bottom:4px;">
           ${"★".repeat(r.star)}
         </div>
-        <div style="margin:6px 0;font-weight:600;">
+
+        <!-- 작성자 -->
+        <div style="margin-bottom:6px;font-weight:600;">
           ${r.author}
         </div>
+
+        <!-- 후기 내용 -->
         <div style="color:#4b5665;line-height:1.4;">
           ${r.text}
         </div>
+
+        <!-- 📸 후기 사진 갤러리 -->
         ${
-          r.photo
-            ? `<img src="${r.photo}"
-                style="width:100%;margin-top:8px;border-radius:10px;">`
+          r.photos && r.photos.length > 0
+            ? `
+            <div style="
+              display:grid;
+              grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+              gap:6px;
+              margin-top:10px;
+            ">
+              ${r.photos.map(url => `
+                <img
+                  src="${url}"
+                  style="
+                    width:100%;
+                    height:90px;
+                    object-fit:cover;
+                    border-radius:8px;
+                  "
+                />
+              `).join("")}
+            </div>
+            `
             : ""
         }
-        <div style="margin-top:8px;font-size:11px;color:#8a94a6;">
-          CleanMate 이용 고객
+
+        <!-- 신뢰 문구 -->
+        <div style="margin-top:10px;font-size:11px;color:#8a94a6;">
+          클린메이트 실제 이용 고객 후기
         </div>
       </div>
     `)
@@ -2558,6 +2585,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
