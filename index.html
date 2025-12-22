@@ -2151,7 +2151,11 @@ async function loadOrders() {
     font-size:12px;
     cursor:pointer;
   "
-  onclick="window.selectedOrderId='${order.id}'; alert('이 주문으로 후기 작성 선택됨');"
+ onclick="
+  window.selectedOrderId='${order.id}';
+  document.getElementById('selectedOrderInfo').innerText =
+    '선택된 주문: ${order.name} (${order.phone})';
+"
 >
   📝 
 </button>
@@ -2277,6 +2281,10 @@ if (tab === "orders") {
 if (tab === "reviews") {
   box.innerHTML = `
     <h3>⭐ 리뷰 관리</h3>
+    <div id="selectedOrderInfo"
+     style="margin:6px 0;font-size:12px;color:#0288d1;font-weight:600;">
+  선택된 주문 없음
+</div>
 
     <div style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:8px;">
       <h4>리뷰 추가</h4>
@@ -2351,6 +2359,45 @@ function renderReviews() {
     </div>
   `).join("");
 }
+async function toggleReview(index) {
+  const review = adminReviews[index];
+  if (!review) return;
+
+  const { error } = await supabaseClient
+    .from("reviews")
+    .update({ visible: !review.visible })
+    .eq("id", review.id);
+
+  if (error) {
+    alert("노출 상태 변경 실패");
+    console.error(error);
+    return;
+  }
+
+  loadAdminReviews();
+  loadPublicReviews();
+}
+
+async function deleteReview(index) {
+  const review = adminReviews[index];
+  if (!review) return;
+
+  if (!confirm("이 리뷰를 삭제할까요?")) return;
+
+  const { error } = await supabaseClient
+    .from("reviews")
+    .delete()
+    .eq("id", review.id);
+
+  if (error) {
+    alert("리뷰 삭제 실패");
+    console.error(error);
+    return;
+  }
+
+  loadAdminReviews();
+  loadPublicReviews();
+}  
     
 async function uploadReviewPhotos(files) {
   const uploadedUrls = [];
@@ -2359,12 +2406,12 @@ async function uploadReviewPhotos(files) {
     const file = files[i];
 
     const fileExt = file.name.split(".").pop();
-    const fileName = `reviews/${Date.now()}_${i}.${fileExt}`;
+    const fileName = `reviews/${crypto.randomUUID()}.${fileExt}`;
 
-    const { error } = await supabaseClient
-      .storage
-      .from("review-photos")
-      .upload(fileName, file);
+const { data, error } = await supabaseClient
+  .storage
+  .from("review-photos")
+  .upload(fileName, file);
 
     if (error) {
       alert("사진 업로드 실패");
@@ -2372,40 +2419,48 @@ async function uploadReviewPhotos(files) {
       return [];
     }
 
-    const { data } = supabaseClient
-      .storage
-      .from("review-photos")
-      .getPublicUrl(fileName);
+const { data: publicData } = supabaseClient
+  .storage
+  .from("review-photos")
+  .getPublicUrl(fileName);
 
-    uploadedUrls.push(data.publicUrl);
+    uploadedUrls.push(publicData.publicUrl);
   }
 
   return uploadedUrls;
 }
 async function addReview() {
-  // 🔒 주문 1회 후기 제한
-  const { data: exists } = await supabaseClient
+  // 1) 주문 선택 확인
+  if (!window.selectedOrderId) {
+    alert("후기를 작성할 주문을 먼저 선택해주세요.");
+    return;
+  }
+
+  // 2) 만족도 선택 확인
+  if (!adminReviewScore) {
+    alert("만족도를 먼저 선택해주세요.");
+    return;
+  }
+
+  // 3) 동일 주문 리뷰 존재 여부 체크 (핵심!)
+  const { data: exists, error: existsError } = await supabaseClient
     .from("reviews")
     .select("id")
     .eq("order_id", window.selectedOrderId)
-    .single();
+    .maybeSingle();
+
+  if (existsError) {
+    console.error(existsError);
+    alert("리뷰 중복 확인 중 오류가 발생했습니다.");
+    return;
+  }
 
   if (exists) {
     alert("이 주문에는 이미 후기가 등록되어 있습니다.");
     return;
   }
 
-  // 🔎 필수 값
-  if (!window.selectedOrderId) {
-    alert("후기를 작성할 주문을 먼저 선택해주세요.");
-    return;
-  }
-
-  if (!adminReviewScore) {
-    alert("만족도를 먼저 선택해주세요.");
-    return;
-  }
-
+  // 4) 입력값
   const author = document.getElementById("reviewAuthor").value.trim();
   const text = document.getElementById("reviewText").value.trim();
   const photoInput = document.getElementById("reviewPhotos");
@@ -2415,7 +2470,7 @@ async function addReview() {
     return;
   }
 
-  // 📸 사진 업로드
+  // 5) 사진 업로드
   let photoUrls = [];
   if (photoInput && photoInput.files.length > 0) {
     if (photoInput.files.length > 10) {
@@ -2423,9 +2478,13 @@ async function addReview() {
       return;
     }
     photoUrls = await uploadReviewPhotos(photoInput.files);
+    if (!photoUrls || photoUrls.length === 0) {
+      // 업로드 실패하면 중단
+      return;
+    }
   }
 
-  // 💾 DB 저장
+  // 6) DB 저장 (order_id 변수 절대 실수 금지!)
   const { error } = await supabaseClient
     .from("reviews")
     .insert([{
@@ -2443,7 +2502,7 @@ async function addReview() {
     return;
   }
 
-  // 🔄 초기화
+  // 7) 초기화
   adminReviewScore = null;
   document.getElementById("reviewAuthor").value = "";
   document.getElementById("reviewText").value = "";
@@ -2661,6 +2720,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
