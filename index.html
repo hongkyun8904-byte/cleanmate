@@ -2142,7 +2142,12 @@ async function loadOrders() {
     window.selectedOrderId='${order.id}';
     document.getElementById('selectedOrderInfo').innerText =
       '선택된 주문: ${order.name} (${order.phone})';
-      document.getElementById("addReviewBtn").disabled = false;
+      <button
+  onclick="addReview()"
+  id="addReviewBtn"
+>
+  리뷰 추가
+</button>
   "
 >
   📝 리뷰 선택
@@ -2714,6 +2719,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
