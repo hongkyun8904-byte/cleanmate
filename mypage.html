@@ -173,6 +173,8 @@ async function loadMyOrder(){
   }
 
   const o = data[0];
+  window.currentOrderId = o.id;
+  
   // ✅ 예약금 / 잔금 계산
 const depositAmount = 60000; // 예약금 6만원
 const totalAmount = o.estimated_price_number || 0;
@@ -316,22 +318,90 @@ function checkReviewPhotos(){
   }
 }
 
-function submitReview(){
+async function uploadReviewPhotos(files){
+  const urls = [];
+
+  for (let file of files) {
+    const ext = file.name.split(".").pop();
+    const fileName = `reviews/${crypto.randomUUID()}.${ext}`;
+
+    const { error } = await supabaseClient
+      .storage
+      .from("review-photos")
+      .upload(fileName, file);
+
+    if (error) {
+      alert("사진 업로드 실패");
+      console.error(error);
+      return [];
+    }
+
+    const { data } = supabaseClient
+      .storage
+      .from("review-photos")
+      .getPublicUrl(fileName);
+
+    urls.push(data.publicUrl);
+  }
+
+  return urls;
+}
+  async function submitReview(){
+
+  if (!window.currentOrderId) {
+    alert("주문 정보를 찾을 수 없습니다.");
+    return;
+  }
+
   if (!selectedReviewScore) {
     alert("만족도를 선택해주세요.");
     return;
   }
 
-  alert("후기가 등록되었습니다. 감사합니다 🙏");
-  showAdminTab("reviews");
-renderPublicReviews();
-}  
+  const text = document.getElementById("reviewText").value.trim();
+  const photoInput = document.getElementById("reviewPhotos");
+
+  let photoUrls = [];
+
+  if (photoInput && photoInput.files.length > 0) {
+    if (photoInput.files.length > 10) {
+      alert("사진은 최대 10장까지 가능합니다.");
+      return;
+    }
+
+    photoUrls = await uploadReviewPhotos(photoInput.files);
+    if (!photoUrls.length) return;
+  }
+
+  const { error } = await supabaseClient
+    .from("reviews")
+    .insert([{
+      order_id: window.currentOrderId,
+      author: "실제 이용 고객",
+      text,
+      star: selectedReviewScore,
+      photos: photoUrls,
+      visible: true
+    }]);
+
+  if (error) {
+    console.error(error);
+    alert("후기 저장 실패");
+    return;
+  }
+
+  alert("후기가 정상적으로 등록되었습니다 🙏");
+
+  // ✅ 리뷰 보이는 곳으로 이동
+  window.location.href = "index.html#review-section";
+}
   
 </script>
 
 </body>
 
 </html>
+
 
 
 
