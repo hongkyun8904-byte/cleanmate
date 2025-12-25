@@ -110,7 +110,20 @@
     계좌번호: 3333-0545-72187<br>
     예금주: 김홍균
   </div>
+<div class="box" style="background:#e3f2fd;border-color:#90caf9;">
+  <b>결제 수단 선택</b><br><br>
 
+  <button onclick="selectPayment('transfer')" style="margin-bottom:8px;">
+    💸 계좌이체
+  </button>
+
+  <button onclick="selectPayment('card')" style="background:#ccc;color:#333;">
+    💳 카드결제 (준비중)
+  </button>
+
+  <p id="paymentNotice" style="margin-top:10px;color:#d32f2f;font-size:13px;"></p>
+</div>
+  
 <button onclick="goHome()">입금 완료 확인</button>
   <button onclick="openKakao()" style="
   width:100%;
@@ -136,9 +149,24 @@ function goHome() {
   function openKakao() {
   window.open("https://open.kakao.com/o/sItc0P4h", "_blank");
 }
+function selectPayment(method) {
+  if (method === 'card') {
+    document.getElementById('paymentNotice').innerText =
+      '카드 결제는 현재 준비 중입니다. 계좌이체로 진행해주세요.';
+    return;
+  }
+
+  document.getElementById('paymentNotice').innerText =
+    '계좌이체를 선택하셨습니다. 입금 후 아래 버튼을 눌러주세요.';
+  
+  // 👉 나중에 여기서 Supabase에
+  // payment_method = 'transfer'
+  // payment_status = 'pending'
+}  
 </script>
 
 </body>
 </html>
+
 
 
