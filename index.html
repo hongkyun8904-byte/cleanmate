@@ -1670,22 +1670,25 @@ const priceNumber = priceText.includes("원")
   const avgScoreText = document.getElementById("avgScoreText").textContent || "-";
   const maxScoreText = document.getElementById("maxScoreText").textContent || "-";
 
-  const { error: orderError } = await supabaseClient
+const { data: orderData, error: orderError } = await supabaseClient
   .from("orders")
-.insert([{
-  name,
-  phone,
-  address: addr,
-  memo,
-  structure,
-  supply_area: supplyArea,
-  estimated_price_text: totalPrice,
-  estimated_price_number: priceNumber, // ⭐ 추가
-  clean_date: cleanDate,
-  clean_time: cleanTime,
-  side_clean_time: sideCleanTime || null,
-  status: "접수됨"
-}]);
+  .insert([{
+    name,
+    phone,
+    address: addr,
+    memo,
+    structure,
+    supply_area: supplyArea,
+    estimated_price_text: totalPrice,
+    estimated_price_number: priceNumber,
+    clean_date: cleanDate,
+    clean_time: cleanTime,
+    side_clean_time: sideCleanTime || null,
+    status: "접수됨"
+  }])
+  .select()
+  .single();
+  sessionStorage.setItem("order_id", orderData.id);
 
 if (orderError) {
   console.error(orderError);
@@ -2719,6 +2722,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
