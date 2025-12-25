@@ -139,34 +139,46 @@
 ">
   💬 클린메이트 상담원 연결
 </button>
-
+ 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* 1️⃣ Supabase 기본 설정 */
+const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
+
+/* 2️⃣ Supabase 연결 */
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+/* 3️⃣ 입금 완료 버튼 */
 function goHome() {
-  alert("입금 확인 요청이 접수되었습니다.\n5~10분 이내 확인 후 연락드립니다.");
+  alert("입금 확인 요청이 접수되었습니다.\n관리자 확인 중입니다.");
   window.location.href = "mypage.html";
 }
 
-  function openKakao() {
+/* 4️⃣ 카카오 상담 버튼 */
+function openKakao() {
   window.open("https://open.kakao.com/o/sItc0P4h", "_blank");
 }
+
+/* 5️⃣ 결제 수단 선택 */
 function selectPayment(method) {
-  if (method === 'card') {
-    document.getElementById('paymentNotice').innerText =
-      '카드 결제는 현재 준비 중입니다. 계좌이체로 진행해주세요.';
+  if (method === "card") {
+    document.getElementById("paymentNotice").innerText =
+      "카드 결제는 현재 준비 중입니다. 계좌이체로 진행해주세요.";
     return;
   }
 
-  document.getElementById('paymentNotice').innerText =
-    '계좌이체를 선택하셨습니다. 입금 후 아래 버튼을 눌러주세요.';
-  
-  // 👉 나중에 여기서 Supabase에
-  // payment_method = 'transfer'
-  // payment_status = 'pending'
-}  
+  document.getElementById("paymentNotice").innerText =
+    "계좌이체를 선택하셨습니다. 입금 후 아래 버튼을 눌러주세요.";
+}
 </script>
-
+  
 </body>
 </html>
+
 
 
 
