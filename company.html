@@ -118,20 +118,46 @@ async function loadOrders(){
   }
 
   list.innerHTML = data.map(order => `
-    <div class="card">
-      <b>${order.name}</b> (${order.phone})<br>
-      주소: ${order.address || "-"}<br>
-      청소일: ${order.clean_date || "-"}<br>
-      상태:
-      <span class="status ${
-        order.status === "완료" ? "done" : "assigned"
-      }">
-        ${order.status}
-      </span>
-    </div>
-  `).join("");
-}
+  <div class="card">
+    <b>${order.name}</b> (${order.phone})<br>
+    주소: ${order.address || "-"}<br>
+    청소일: ${order.clean_date || "-"}<br>
+    상태:
+    <span class="status ${
+      order.status === "완료" ? "done" : "assigned"
+    }">
+      ${order.status}
+    </span>
 
+    ${
+      order.status === "배정완료"
+        ? `<div style="margin-top:10px;">
+             <button onclick="markDone('${order.id}')">✅ 작업완료</button>
+           </div>`
+        : ""
+    }
+  </div>
+`).join("");
+}
+async function markDone(id){
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({
+      status: "완료",
+      review_open: true
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert("작업완료 처리 실패");
+    console.error(error);
+    return;
+  }
+
+  alert("작업 완료 처리되었습니다.");
+  loadOrders();
+}
+  
 /* ===============================
    기타
    =============================== */
