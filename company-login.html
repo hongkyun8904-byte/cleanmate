@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>업체 로그인 | CleanMate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body{
+      margin:0;
+      padding:20px;
+      background:#f5f7fb;
+      font-family:-apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui;
+    }
+    .box{
+      max-width:400px;
+      margin:100px auto;
+      background:#fff;
+      padding:24px;
+      border-radius:16px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.08);
+    }
+    h1{
+      font-size:18px;
+      margin-bottom:16px;
+      text-align:center;
+    }
+    input{
+      width:100%;
+      padding:12px;
+      margin-bottom:10px;
+      border-radius:10px;
+      border:1px solid #d1d9e6;
+      font-size:14px;
+    }
+    button{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:999px;
+      background:#2e7d32;
+      color:#fff;
+      font-weight:800;
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h1>🏢 업체 로그인</h1>
+
+  <input id="loginId" placeholder="업체 아이디 (업체명)" />
+  <input id="password" type="password" placeholder="비밀번호" />
+
+  <button onclick="login()">로그인</button>
+</div>
+
+<script>
+const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+async function login(){
+  const loginId = document.getElementById("loginId").value.trim();
+  const password = document.getElementById("password").value;
+
+  if(!loginId || !password){
+    alert("아이디와 비밀번호를 입력하세요");
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("companies")
+    .select("*")
+    .eq("company_name", loginId)
+    .single();
+
+  if(error || !data){
+    alert("등록되지 않은 업체입니다");
+    return;
+  }
+
+  // 🔴 비밀번호가 아직 없는 업체
+  if(!data.password_hash){
+    sessionStorage.setItem("company_id", data.id);
+    location.href = "company-set-password.html";
+    return;
+  }
+
+  // 🔴 임시로 비밀번호 비교 (다음 단계에서 해시로 바꿈)
+  if(data.password_hash !== password){
+    alert("비밀번호가 틀렸습니다");
+    return;
+  }
+
+  sessionStorage.setItem("company_id", data.id);
+  sessionStorage.setItem("company_name", data.company_name);
+  location.href = "company.html";
+}
+</script>
+
+</body>
+</html>
