@@ -67,7 +67,15 @@
 </head>
 
 <body>
+<script>
+const companyId = sessionStorage.getItem("company_id");
+const companyName = sessionStorage.getItem("company_name");
 
+if(!companyId || !companyName){
+  alert("로그인이 필요합니다");
+  location.href = "company-login.html";
+}
+</script>
 <header>
   <h1>🏢 업체 전용 페이지</h1>
   <button onclick="logout()">로그아웃</button>
@@ -90,7 +98,7 @@ const supabaseClient = supabase.createClient(
 );
 
 /* ⚠️ 지금은 업체 고정 */
-const COMPANY_NAME = "환승클린";
+const COMPANY_NAME = companyName;
 
 /* ===============================
    2️⃣ 업체에 배정된 주문만 조회
@@ -103,7 +111,7 @@ async function loadOrders(){
   .from("orders")
 .select("*")
 .eq("status", "배정완료")
-.eq("assigned_company", "환승클린")
+.eq("assigned_company", COMPANY_NAME)
 .order("created_at", { ascending:false });
 
   if(error){
