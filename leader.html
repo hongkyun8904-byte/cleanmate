@@ -99,9 +99,10 @@ async function loadOrders(){
   list.innerHTML = "불러오는 중...";
 
   const { data, error } = await supabaseClient
-    .from("orders")
-    .select("*")
-    .order("created_at", { ascending:false });
+  .from("orders")
+  .select("*")
+  .eq("status", "배정완료")
+  .order("created_at", { ascending:false });
 
   if(error){
     list.innerHTML = "주문 불러오기 실패";
@@ -120,14 +121,22 @@ async function loadOrders(){
       주소: ${order.address || "-"}<br>
       청소일: ${order.clean_date || "-"}<br>
       상태:
-      <span class="status ${order.status === "배정완료" ? "done" : "wait"}">
+      <span class="status ${
+  order.status === "배정완료" ? "done" :
+  order.status === "완료" ? "done" :
+  "wait"
+}">
         ${order.status}
       </span>
 
-      <div>
-        <button onclick="markPaid('${order.id}')">💰 입금확인</button>
-        <button onclick="markDone('${order.id}')">✅ 작업완료</button>
-      </div>
+     <div>
+ 
+  ${
+    order.status === "배정완료"
+      ? `<button onclick="markDone('${order.id}')">✅ 작업완료</button>`
+      : ""
+  }
+</div>
     </div>
   `).join("");
 }
