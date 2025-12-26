@@ -4,33 +4,165 @@
   <meta charset="UTF-8" />
   <title>팀장 페이지 | CleanMate</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui;
-      background:#f5f7fb;
+    body{
       margin:0;
       padding:20px;
+      font-family:-apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui;
+      background:#f5f7fb;
     }
-    .card {
-      max-width:600px;
-      margin:40px auto;
+
+    header{
+      max-width:1200px;
+      margin:0 auto 20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    header h1{
+      margin:0;
+      font-size:20px;
+      color:#0288d1;
+    }
+
+    .container{
+      max-width:1200px;
+      margin:0 auto;
+    }
+
+    .card{
       background:#fff;
-      border-radius:16px;
-      padding:24px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.1);
+      border-radius:14px;
+      padding:16px;
+      margin-bottom:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+      font-size:14px;
     }
-    h1 {
-      margin:0 0 12px;
+
+    .status{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .status.wait{ background:#fff3cd; color:#856404; }
+    .status.done{ background:#e3f2fd; color:#1565c0; }
+
+    button{
+      margin-top:8px;
+      padding:6px 12px;
+      border-radius:8px;
+      border:1px solid #0288d1;
+      background:#fff;
+      color:#0288d1;
+      cursor:pointer;
+      font-weight:600;
     }
   </style>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
 
-<div class="card">
-  <h1>👷 팀장 페이지</h1>
-  <p>leader.html 정상 로드됨</p>
-  <p>여기부터 기능 붙이면 됨</p>
+<header>
+  <h1>👷 팀장 전용 페이지</h1>
+  <button onclick="logout()">로그아웃</button>
+</header>
+
+<div class="container" id="orderList">
+  불러오는 중...
 </div>
+
+<script>
+/* ===============================
+   1️⃣ Supabase 연결
+   =============================== */
+const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+/* ===============================
+   2️⃣ 주문 불러오기
+   =============================== */
+async function loadOrders(){
+  const list = document.getElementById("orderList");
+  list.innerHTML = "불러오는 중...";
+
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending:false });
+
+  if(error){
+    list.innerHTML = "주문 불러오기 실패";
+    console.error(error);
+    return;
+  }
+
+  if(!data || data.length === 0){
+    list.innerHTML = "배정된 주문이 없습니다.";
+    return;
+  }
+
+  list.innerHTML = data.map(order => `
+    <div class="card">
+      <b>${order.name}</b> (${order.phone})<br>
+      주소: ${order.address || "-"}<br>
+      청소일: ${order.clean_date || "-"}<br>
+      상태:
+      <span class="status ${order.status === "배정완료" ? "done" : "wait"}">
+        ${order.status}
+      </span>
+
+      <div>
+        <button onclick="markPaid('${order.id}')">💰 입금확인</button>
+        <button onclick="markDone('${order.id}')">✅ 작업완료</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+/* ===============================
+   3️⃣ 상태 변경
+   =============================== */
+async function markPaid(id){
+  await supabaseClient
+    .from("orders")
+    .update({ status:"배정완료", assigned_company:"환승클린" })
+    .eq("id", id);
+
+  loadOrders();
+}
+
+async function markDone(id){
+  await supabaseClient
+    .from("orders")
+    .update({ status:"완료" })
+    .eq("id", id);
+
+  loadOrders();
+}
+
+/* ===============================
+   기타
+   =============================== */
+function logout(){
+  location.href = "index.html";
+}
+
+/* 최초 실행 */
+loadOrders();
+</script>
 
 </body>
 </html>
