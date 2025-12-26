@@ -482,15 +482,7 @@ window.location.href = "confirm.html";
 }
   
 </script>
-<!-- ===============================
-     관리자 로그인 모달
-     =============================== -->
-  <script>
-let adminClickCount = 0;
-let adminClickTimer = null;
 
-
-</script>
 <script>
 
 /* ===============================
@@ -556,9 +548,6 @@ function checkAdminReviewPhotos(){
     input.value = "";
   }
 }
-/* ===============================
-   관리자 로그인 
-   =============================== */
 
 
 /* ===============================
@@ -726,13 +715,6 @@ const specialCount = "-";
     `;
   }
 
- if (order.status === "접수됨") {
-    buttons += `
-      <button onclick="updateOrderStatus('${order.id}', '배정완료')">
-        ✅ 배정완료
-      </button>
-    `;
-  }
 
   buttons += `
     <button
