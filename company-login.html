@@ -15,7 +15,7 @@
       font-family:-apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui;
     }
     .box{
-      max-width:400px;
+      max-width:420px;
       margin:100px auto;
       background:#fff;
       padding:24px;
@@ -53,7 +53,7 @@
 <div class="box">
   <h1>🏢 업체 로그인</h1>
 
-  <input id="loginId" placeholder="업체 아이디 (업체명)" />
+  <input id="companyName" placeholder="업체명" />
   <input id="password" type="password" placeholder="비밀번호" />
 
   <button onclick="login()">로그인</button>
@@ -69,40 +69,43 @@ const supabaseClient = supabase.createClient(
 );
 
 async function login(){
-  const loginId = document.getElementById("loginId").value.trim();
-  const password = document.getElementById("password").value;
+  const name = document.getElementById("companyName").value.trim();
+  const pw   = document.getElementById("password").value;
 
-  if(!loginId || !password){
-    alert("아이디와 비밀번호를 입력하세요");
+  if(!name || !pw){
+    alert("모두 입력하세요");
     return;
   }
 
   const { data, error } = await supabaseClient
     .from("companies")
     .select("*")
-    .eq("company_name", loginId)
+    .eq("company_name", name)
+    .eq("is_active", true)
     .single();
 
   if(error || !data){
-    alert("등록되지 않은 업체입니다");
+    alert("업체 정보 없음");
     return;
   }
 
-  // 🔴 비밀번호가 아직 없는 업체
+  // 비밀번호 아직 없는 업체 → 최초 설정
   if(!data.password_hash){
     sessionStorage.setItem("company_id", data.id);
     location.href = "company-set-password.html";
     return;
   }
 
-  // 🔴 임시로 비밀번호 비교 (다음 단계에서 해시로 바꿈)
-  if(data.password_hash !== password){
-    alert("비밀번호가 틀렸습니다");
+  // 비밀번호 체크 (지금은 단순 비교)
+  if(data.password_hash !== pw){
+    alert("비밀번호 틀림");
     return;
   }
 
+  // 로그인 성공
   sessionStorage.setItem("company_id", data.id);
   sessionStorage.setItem("company_name", data.company_name);
+
   location.href = "company.html";
 }
 </script>
