@@ -1,1 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>팀장 페이지 | CleanMate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body{
+      margin:0;
+      padding:16px;
+      background:#f5f7fb;
+      font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR",system-ui,sans-serif;
+      color:#222;
+    }
+    h1{
+      font-size:20px;
+      margin-bottom:12px;
+    }
+    .card{
+      background:#fff;
+      border-radius:14px;
+      padding:14px;
+      margin-bottom:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+      font-size:13px;
+    }
+    .btn{
+      width:100%;
+      padding:10px;
+      margin-top:6px;
+      border:none;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .btn-blue{ background:#0288d1;color:#fff; }
+    .btn-red{ background:#c62828;color:#fff; }
+    .btn-gray{ background:#e0e0e0;color:#333; }
+
+    input[type="file"]{
+      width:100%;
+      margin-top:6px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🧑‍🔧 팀장 페이지</h1>
+
+<div id="orderList">불러오는 중...</div>
+
+<script>
+/* ===============================
+   1️⃣ Supabase 연결
+   =============================== */
+const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+/* ===============================
+   2️⃣ 팀장 소속 업체 (지금은 고정)
+   =============================== */
+const COMPANY_NAME = "환승클린";
+
+/* ===============================
+   3️⃣ 주문 불러오기
+   =============================== */
+async function loadOrders(){
+  const box = document.getElementById("orderList");
+  box.innerHTML = "불러오는 중...";
+
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .eq("assigned_company", COMPANY_NAME)
+    .order("created_at", { ascending:false });
+
+  if(error){
+    box.innerHTML = "주문을 불러오지 못했습니다.";
+    console.error(error);
+    return;
+  }
+
+  if(!data || data.length === 0){
+    box.innerHTML = "배정된 주문이 없습니다.";
+    return;
+  }
+
+  box.innerHTML = data.map(o => `
+    <div class="card">
+      <b>${o.name}</b> (${o.phone})<br>
+      주소: ${o.address || "-"}<br>
+      상태: <b>${o.status}</b><br>
+      청소일: ${o.clean_date || "-"} / ${o.clean_time || "-"}
+
+      <input type="file" multiple />
+
+      <button class="btn btn-blue"
+        onclick="requestExtra('${o.id}')">
+        💰 추가금 요청
+      </button>
+
+      <button class="btn btn-red"
+        onclick="requestExit('${o.id}')">
+        ❌ 퇴거 처리
+      </button>
+    </div>
+  `).join("");
+}
+
+/* ===============================
+   4️⃣ 추가금 요청
+   =============================== */
+async function requestExtra(orderId){
+  const amount = prompt("추가금 금액을 입력하세요 (숫자만)");
+
+  if(!amount) return;
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({
+      extra_charge: Number(amount),
+      payment_status: "extra_requested"
+    })
+    .eq("id", orderId);
+
+  if(error){
+    alert("추가금 요청 실패");
+    console.error(error);
+    return;
+  }
+
+  alert("추가금 요청 완료");
+}
+
+/* ===============================
+   5️⃣ 퇴거 처리
+   =============================== */
+async function requestExit(orderId){
+  if(!confirm("정말 퇴거 처리하시겠습니까?\n(금액 50% 정산)")) return;
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({
+      status: "퇴거",
+      payment_status: "exit_required"
+    })
+    .eq("id", orderId);
+
+  if(error){
+    alert("퇴거 처리 실패");
+    console.error(error);
+    return;
+  }
+
+  alert("퇴거 처리 완료");
+  loadOrders();
+}
+
+/* ===============================
+   초기 실행
+   =============================== */
+loadOrders();
+</script>
+
+</body>
+</html>
