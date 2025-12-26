@@ -170,7 +170,8 @@ async function markDone(id){
    기타
    =============================== */
 function logout(){
-  location.href = "index.html";
+  sessionStorage.clear();
+  location.href = "company-login.html";
 }
 
 /* 최초 실행 */
