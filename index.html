@@ -1976,25 +1976,41 @@ const specialCount = "-";
   let updateData = {};
 
   if (newStatus === "입금확인") {
+
+    // 1️⃣ 활성화된 업체 1곳 가져오기
+    const { data: companies, error } = await supabaseClient
+      .from("companies")
+      .select("company_name")
+      .eq("is_active", true)
+      .limit(1);
+
+    if (error || !companies || companies.length === 0) {
+      alert("활성화된 업체가 없습니다");
+      return;
+    }
+
+    // 2️⃣ 첫 번째 업체 배정
     updateData.status = "배정완료";
-    updateData.assigned_company = "환승클린";
+    updateData.assigned_company = companies[0].company_name;
+
   } else {
     updateData.status = newStatus;
   }
 
-  const { error } = await supabaseClient
+  const { error: updateError } = await supabaseClient
     .from("orders")
     .update(updateData)
     .eq("id", orderId);
 
-  if (error) {
+  if (updateError) {
     alert("상태 변경 실패");
-    console.error(error);
+    console.error(updateError);
     return;
   }
 
   loadOrders();
 }
+
   function renderNextActionButtons(order) {
 
   if (order.status === "반려됨") {
@@ -2780,6 +2796,7 @@ function deleteCustomer(i) {
 </div>
 </body>
 </html>
+
 
 
 
