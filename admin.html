@@ -1,267 +1,1519 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <title>CleanMate 관리자</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    body{
-      margin:0;
-      padding:20px;
-      font-family:-apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui;
-      background:#f5f7fb;
-    }
-    h2,h3{margin:0}
-    button{
-      padding:8px 14px;
-      border-radius:8px;
-      border:1px solid #ccc;
-      background:#fff;
-      cursor:pointer;
-      font-weight:600;
-    }
-    .card{
-      background:#fff;
-      border-radius:14px;
-      padding:14px;
-      box-shadow:0 6px 18px rgba(0,0,0,0.06);
-      margin-bottom:12px;
-    }
-  </style>
-</head>
-
-<body>
-
 <!-- ===============================
- 관리자 로그인
- =============================== -->
-<div id="loginBox" class="card" style="max-width:360px;margin:120px auto;">
-  <h3 style="text-align:center;margin-bottom:12px;">CleanMate 관리자 로그인</h3>
+     관리자 대시보드 (숨김)
+     =============================== -->
+<div id="adminDashboard" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:#f5f7fb;
+  z-index:9998;
+  overflow:auto;
+">
+  <div style="max-width:1200px;margin:20px auto;padding:20px;">
 
-  <input id="adminId" placeholder="아이디"
-    style="width:100%;padding:10px;margin-bottom:8px;" />
+  <!-- 관리자 제목 -->
+  <div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-bottom:12px;
+    border-bottom:1px solid #ddd;
+  ">
+    <div>
+      <h2 style="margin:0;">CleanMate 관리자</h2>
+      <div style="font-size:12px;color:#666;">
+        견적 · 고객 · 업체 · 리뷰 통합 관리
+      </div>
+    </div>
+    <button onclick="closeAdminDashboard()"
+      style="padding:8px 14px;border-radius:8px;border:1px solid #ccc;">
+      닫기
+    </button>
+  </div>
 
-  <input id="adminPw" type="password" placeholder="비밀번호"
-    style="width:100%;padding:10px;margin-bottom:12px;" />
+  <!-- 🔥 통계 카드 (여기가 핵심) -->
+  <div id="adminStats" style="
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:12px;
+    margin:16px 0 20px;
+  ">
+    <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.06);">
+      <b>누적 견적 요청</b><br>
+      <span id="statTotalOrders">-</span> 건
+    </div>
 
-  <button style="width:100%;" onclick="adminLogin()">로그인</button>
+    <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.06);">
+      <b>실제 고객 수</b><br>
+      <span id="statCustomers">-</span> 명
+    </div>
+
+    <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.06);">
+      <b>실제 배정 완료 건</b><br>
+      <span id="statCompleted">-</span> 건
+    </div>
+
+    <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.06);">
+      <b>평균 객단가</b><br>
+      <span id="statAvgPrice">-</span> 원
+    </div>
+
+    <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.06);">
+      <b>고부가 특수청소 비중</b><br>
+      <span id="statSpecial">-</span> 건
+    </div>
+  </div>
+
+  <!-- 관리자 탭 버튼 -->
+  <div style="margin-top:20px;display:flex;gap:12px;">
+    <button onclick="showAdminTab('reviews')">⭐ 리뷰 관리</button>
+    <button onclick="showAdminTab('companies')">🏢 업체 관리</button>
+    <button onclick="showAdminTab('customers')">👤 고객 관리</button>
+    <button onclick="showAdminTab('orders')">📋 예약 관리</button>
+  </div>
+
+  <!-- 탭 콘텐츠 -->
+  <div id="adminContent" style="margin-top:20px;"></div>
+
+</div>
 </div>
 
-<!-- ===============================
- 관리자 대시보드
- =============================== -->
-<div id="dashboard" style="display:none;max-width:1200px;margin:0 auto;">
+<script>
+const ORDER_STEPS = [
+  "접수됨",
+  "배정완료",
+  "반려됨"
+];
 
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-    <div>
-      <h2>CleanMate 관리자</h2>
-      <div style="font-size:12px;color:#666;">견적 · 주문 · 업체 · 리뷰 관리</div>
+let customers = [];
+
+function renderStatusFlow(currentStatus) {
+  const currentIndex = ORDER_STEPS.indexOf(currentStatus);
+
+  return `
+    <div style="display:flex;gap:6px;margin-top:8px;">
+      ${ORDER_STEPS.map((step, idx) => {
+        let bg = "#eee";
+        let color = "#999";
+
+        if (idx < currentIndex) {
+          bg = "#e3f2fd";     // 완료(지나간 단계)
+          color = "#1565c0";
+        } else if (idx === currentIndex) {
+          bg = "#0288d1";     // 현재 단계
+          color = "#fff";
+        }
+
+        return `
+          <div style="
+            flex:1;
+            text-align:center;
+            padding:6px 0;
+            border-radius:999px;
+            font-size:11px;
+            font-weight:600;
+            background:${bg};
+            color:${color};
+          ">
+            ${step}
+          </div>
+        `;
+      }).join("")}
     </div>
-    <button onclick="logout()">로그아웃</button>
-  </div>
+  `;
+}
 
-  <!-- 통계 -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;">
-    <div class="card"><b>누적 견적</b><br><span id="statOrders">-</span></div>
-    <div class="card"><b>고객 수</b><br><span id="statCustomers">-</span></div>
-    <div class="card"><b>배정 완료</b><br><span id="statAssigned">-</span></div>
-    <div class="card"><b>평균 객단가</b><br><span id="statAvg">-</span></div>
-  </div>
+/* ===============================
+   고객 데이터 (관리자 전용)
+   =============================== */
 
-  <!-- 탭 -->
-  <div style="display:flex;gap:10px;margin-bottom:14px;">
-    <button onclick="showTab('orders')">📋 예약</button>
-    <button onclick="showTab('companies')">🏢 업체</button>
-    <button onclick="showTab('reviews')">⭐ 리뷰</button>
-  </div>
+function updateApplyButtonText() {
+  const isSpecial = document.getElementById("specialClean").checked;
+  const btn = document.getElementById("applyBtn");
 
-  <div id="content"></div>
+  if (!btn) return;
+
+  if (isSpecial) {
+    btn.textContent = "특수청소 상담 신청하기";
+  } else {
+    btn.textContent = "우수업체에게 자동 신청하기";
+  }
+}
+
+  function formatPrice(num) {
+    if (num === 0) return "0원";
+    if (!num) return "-";
+    return num.toLocaleString("ko-KR") + "원";
+  }
+
+  function scrollToEstimate() {
+    const el = document.getElementById("estimate-section");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+/* ✅ 메인 섹션 탭 전환 */
+function showMainSection(type){
+
+  // 1️⃣ 전부 숨김
+  document.getElementById("estimate-section").style.display = "none";
+  document.getElementById("review-section").style.display = "none";
+  document.getElementById("gallery-section").style.display = "none";
+
+  // 2️⃣ 버튼 active 제거
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  // 3️⃣ 선택한 것만 보여주기
+  if(type === "estimate"){
+    document.getElementById("estimate-section").style.display = "block";
+    document.querySelectorAll(".tab-btn")[0].classList.add("active");
+  }
+
+  if(type === "review"){
+    document.getElementById("review-section").style.display = "block";
+    document.querySelectorAll(".tab-btn")[1].classList.add("active");
+  }
+
+  if(type === "gallery"){
+    document.getElementById("gallery-section").style.display = "block";
+    document.querySelectorAll(".tab-btn")[2].classList.add("active");
+  }
+}
+
+/* ✅ 처음 화면은 견적만 */
+document.addEventListener("DOMContentLoaded", () => {
+  showMainSection("estimate");
+});
+function goMyPage() {
+  window.location.href = "mypage.html";
+}
+ function updateCounter(type, delta) {
+  let id = "";
+
+  if (type === "ward2") id = "ward2Count";
+  if (type === "ward3") id = "ward3Count";
+  if (type === "aircon") id = "airconCount";
+  if (type === "washer") id = "washerCount";
+  if (type === "fridge") id = "fridgeCount";
+
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  let val = parseInt(el.textContent || "0", 10);
+  val += delta;
+  if (val < 0) val = 0;
+  el.textContent = String(val);
+}
+
+  function calculateEstimate() {
+    const structure = document.getElementById("structure").value;
+    const supplyArea = parseFloat(document.getElementById("supplyArea").value || "0");
+    const isUnexpanded = document.getElementById("isUnexpanded").checked;
+    const loftArea = parseFloat(document.getElementById("loftArea").value || "0");
+    const isLiveIn = document.getElementById("isLiveIn").checked;
+    const ward2Count = parseInt(document.getElementById("ward2Count").textContent || "0", 10);
+    const ward3Count = parseInt(document.getElementById("ward3Count").textContent || "0", 10);
+    const kitchenDeep = document.getElementById("kitchenDeep").checked;
+const sideClean = document.getElementById("sideClean").checked;
+const specialClean = document.getElementById("specialClean").checked;
+const specialNotice = document.getElementById("specialNotice");
+updateApplyButtonText();
+
+    // 사진 수 & 랜덤 오염도
+    const files = document.getElementById("photoInput").files;
+    const photoCount = files.length;
+    let scores = [];
+
+    if (photoCount > 0) {
+      for (let i = 0; i < photoCount; i++) {
+        // 40~95 사이 랜덤 (현재는 샘플용)
+        const score = Math.floor(40 + Math.random() * 56);
+        scores.push(score);
+      }
+    }
+
+    const avgScore = scores.length
+      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+      : null;
+    const maxScore = scores.length ? Math.max(...scores) : null;
+
+    // 1) 기본가
+    let basePrice = 0;
+    if (structure === "원룸") {
+      basePrice = 160000;
+    } else {
+      if (supplyArea <= 0) {
+        basePrice = 0;
+      } else if (supplyArea <= 22) {
+        basePrice = 220000;
+      } else {
+        basePrice = supplyArea * 10000;
+      }
+    }
+
+    // 2) 비확장 + 복층
+    const unexpAdd = isUnexpanded ? 50000 : 0;
+    const loftAdd = loftArea > 0 ? loftArea * 5000 : 0;
+
+    // 3) 거주 / 붙박이 / 주방
+    let optionsAdd = 0;
+    const airconCount = parseInt(document.getElementById("airconCount").textContent || "0", 10);
+const washerCount = parseInt(document.getElementById("washerCount").textContent || "0", 10);
+const fridgeCount = parseInt(document.getElementById("fridgeCount").textContent || "0", 10);
+const largeFridge = document.getElementById("largeFridge").checked;
+
+optionsAdd += airconCount * 20000;
+optionsAdd += washerCount * 20000;
+optionsAdd += fridgeCount * 20000;
+
+if (largeFridge && fridgeCount > 0) {
+  optionsAdd += fridgeCount * 10000;
+}
+if (sideClean) optionsAdd += 50000;
+    if (isLiveIn) optionsAdd += 50000;
+    optionsAdd += ward2Count * 50000;
+    optionsAdd += ward3Count * 70000;
+    if (kitchenDeep) optionsAdd += 70000;
+
+    // 4) 사진별 오염도 추가요금 (보통 더러움 0원)
+    //    0~60 : 0원
+    //    61~75 : +10,000원
+    //    76~90 : +30,000원
+    //    91~100: +50,000원
+    let photoExtraTotal = 0;
+    let detailRowsHtml = "";
+
+    if (scores.length) {
+      scores.forEach((score, idx) => {
+        let extra = 0;
+        let level = "보통";
+        if (score > 60 && score <= 75) {
+          extra = 10000;
+          level = "약간 높음";
+        } else if (score > 75 && score <= 90) {
+          extra = 30000;
+          level = "높음";
+        } else if (score > 90) {
+          extra = 50000;
+          level = "매우 높음";
+        }
+        photoExtraTotal += extra;
+
+        detailRowsHtml += `
+          <tr>
+            <td>${idx + 1}번</td>
+            <td>${score}점</td>
+            <td>${level}</td>
+            <td>${extra ? "+" + extra.toLocaleString("ko-KR") + "원" : "0원"}</td>
+          </tr>
+        `;
+      });
+    } else {
+      detailRowsHtml = `
+        <tr>
+          <td colspan="4" style="padding:10px 4px;font-size:11px;color:#8a94a6;">
+            사진을 업로드한 경우, 각 사진별 오염도와 추가요금이 표시됩니다.
+          </td>
+        </tr>
+      `;
+    }
+
+    const total = basePrice + unexpAdd + loftAdd + optionsAdd + photoExtraTotal;
+
+    // 화면 반영
+    document.getElementById("photoCountText").textContent = photoCount + "장";
+    document.getElementById("avgScoreText").textContent = avgScore !== null ? avgScore : "-";
+    document.getElementById("maxScoreText").textContent = maxScore !== null ? maxScore : "-";
+
+    document.getElementById("basePriceCell").textContent = formatPrice(basePrice);
+    document.getElementById("unexpCell").textContent = formatPrice(unexpAdd);
+    document.getElementById("loftCell").textContent = formatPrice(loftAdd);
+    document.getElementById("optionsCell").textContent = formatPrice(optionsAdd);
+    document.getElementById("photoExtraCell").textContent = formatPrice(photoExtraTotal);
+    if (specialClean) {
+  document.getElementById("totalPriceText").textContent = "상담 후 결정";
+  specialNotice.style.display = "block";
+} else {
+  document.getElementById("totalPriceText").textContent = formatPrice(total);
+  specialNotice.style.display = "none";
+}
+
+    const tbody = document.querySelector("#photoDetailTable tbody");
+    tbody.innerHTML = detailRowsHtml;
+
+    // 계산 후 신청 박스 오픈
+    document.getElementById("requestBox").style.display = "block";
+  }
+
+async function sendToKakao() {
+  const specialClean = document.getElementById("specialClean").checked;
+
+  const name = (document.getElementById("custName").value || "").trim();
+  const phone = (document.getElementById("custPhone").value || "").trim();
+  const addr = (document.getElementById("custAddr").value || "").trim();
+  const memo = (document.getElementById("custMemo").value || "").trim();
+  const cleanDate = document.getElementById("cleanDate").value;
+
+let cleanTime = "";
+const timeMorning = document.getElementById("timeMorning").checked;
+const timeAfternoon = document.getElementById("timeAfternoon").checked;
+
+if (timeMorning) cleanTime = "오전 8시~9시";
+if (timeAfternoon) cleanTime = "오후 2시~3시";
+
+const sideCleanChecked = document.getElementById("sideClean").checked;
+let sideCleanTime = "";
+
+if (sideCleanChecked) {
+  const start = document.getElementById("sideStartTime").value;
+  const end = document.getElementById("sideEndTime").value;
+  sideCleanTime = start && end ? `${start} ~ ${end}` : "";
+}
+
+  if (!name || !phone) {
+    alert("이름과 연락처는 필수 입력입니다.");
+    return;
+  }
+
+  /* ===============================
+     1️⃣ 고객 upsert (Supabase)
+     =============================== */
+const { data: customerData, error: customerError } =
+  await supabaseClient
+    .from("customers")
+    .upsert(
+      {
+        name,
+        phone,
+        address: addr,
+        memo,
+      },
+      { onConflict: "phone" }
+    )
+    .select()
+    .single();
+console.log("customerData:", customerData);
+console.log("customerError:", customerError);
+if (customerError) {
+  console.error(customerError);
+  alert("고객 저장 중 오류가 발생했습니다.");
+  return;
+}
+
+  /* ===============================
+     2️⃣ 주문 저장 (고객 연결)
+     =============================== */
+  const structure = document.getElementById("structure").value;
+  const supplyAreaInput = document.getElementById("supplyArea").value;
+const supplyArea = supplyAreaInput ? Number(supplyAreaInput) : null;
+  const totalPrice = document.getElementById("totalPriceText").textContent || "-";
+  const priceText = totalPrice;
+const priceNumber = priceText.includes("원")
+  ? parseInt(priceText.replace(/[^\d]/g, ""), 10)
+  : null;
+ 
+  const photoCountText = document.getElementById("photoCountText").textContent || "-";
+  const avgScoreText = document.getElementById("avgScoreText").textContent || "-";
+  const maxScoreText = document.getElementById("maxScoreText").textContent || "-";
+
+const { data: orderData, error: orderError } = await supabaseClient
+  .from("orders")
+  .insert([{
+    name,
+    phone,
+    address: addr,
+    memo,
+    structure,
+    supply_area: supplyArea,
+    estimated_price_text: totalPrice,
+    estimated_price_number: priceNumber,
+    clean_date: cleanDate,
+    clean_time: cleanTime,
+    side_clean_time: sideCleanTime || null,
+    status: "접수됨"
+  }])
+  .select()
+  .single();
+  sessionStorage.setItem("order_id", orderData.id);
+
+if (orderError) {
+  console.error(orderError);
+  alert("예약 저장 중 오류가 발생했습니다.");
+  return;
+}
+
+  const payload = {
+  name,
+  phone,
+  address: addr,
+  memo,
+  clean_date: cleanDate,
+  clean_time: cleanTime,
+  side_clean_time: sideCleanTime || null,
+  structure,
+  supply_area: supplyArea,
+  total_price_text: document.getElementById("totalPriceText").textContent
+};
+
+localStorage.setItem("cleanmate_payload", JSON.stringify(payload));
+
+// 필수 확인 페이지로 이동
+window.location.href = "confirm.html";
+  
+}
+  
+</script>
+<!-- ===============================
+     관리자 로그인 모달
+     =============================== -->
+  <script>
+let adminClickCount = 0;
+let adminClickTimer = null;
+
+window.addEventListener("load", () => {
+  const footer = document.getElementsByTagName("footer")[0];
+  if (!footer) {
+    alert("footer 못 찾음");
+    return;
+  }
+
+  footer.onclick = () => {
+    adminClickCount++;
+
+    if (adminClickCount === 1) {
+      adminClickTimer = setTimeout(() => {
+        adminClickCount = 0;
+      }, 5000);
+    }
+
+    if (adminClickCount === 5) {
+      clearTimeout(adminClickTimer);
+      adminClickCount = 0;
+      document.getElementById("adminModal").style.display = "block";
+    }
+  };
+});
+</script>
+<div id="adminModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  z-index:9999;
+">
+  <div style="
+    background:#fff;
+    max-width:360px;
+    margin:15% auto;
+    padding:24px;
+    border-radius:12px;
+  ">
+    <h3 style="text-align:center;margin-bottom:16px;">
+      CleanMate 관리자 로그인
+    </h3>
+
+<input id="adminEmail" type="text" placeholder="관리자 아이디"
+  style="width:100%;padding:10px;margin-bottom:10px;" />
+
+    <input id="adminPassword" type="password" placeholder="비밀번호"
+      style="width:100%;padding:10px;margin-bottom:16px;" />
+
+<button onclick="adminLogin()"
+  style="width:100%;padding:12px;background:#111;color:#fff;border:none;">
+  로그인
+</button>
+
+    <button onclick="closeAdminModal()"
+      style="width:100%;margin-top:8px;padding:10px;">
+      취소
+    </button>
+  </div>
 </div>
 
 <script>
 /* ===============================
- Supabase
- =============================== */
-const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
-const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
-
-const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+   관리자 진입 트리거 (푸터 5번 클릭)
+   =============================== */
+/* ===============================
+   업체 데이터 (관리자 전용)
+   =============================== */
 
 /* ===============================
- 로그인
- =============================== */
-function adminLogin(){
-  const id = document.getElementById("adminId").value;
-  const pw = document.getElementById("adminPw").value;
+   리뷰 데이터 (관리자 전용)
+   =============================== */
+  let reviews = [];
+  let adminReviews = [];
+let publicReviews = [];
+  async function loadAdminReviews() {
+  const { data, error } = await supabaseClient
+    .from("reviews")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  if(id === "clean8904" && pw === "ghkstmdzmffls8904!"){
-    sessionStorage.setItem("admin", "true");
-    openDashboard();
+  if (error) {
+    console.error(error);
+    alert("리뷰 데이터를 불러오지 못했습니다.");
+    return;
+  }
+
+  adminReviews = data || [];
+  renderReviews();
+}
+
+async function loadPublicReviews() {
+  const { data, error } = await supabaseClient
+    .from("reviews")
+    .select("*")
+    .eq("visible", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  publicReviews = data || [];
+  renderPublicReviews();
+  renderBAGallery();
+}
+  
+let adminReviewScore = null;
+
+function selectAdminReviewScore(score){
+  adminReviewScore = score;
+  alert(
+    score === 5 ? "너무 만족해요 선택됨" :
+    score === 4 ? "만족해요 선택됨" :
+    "아쉬워요 선택됨"
+  );
+}
+
+function checkAdminReviewPhotos(){
+  const input = document.getElementById("reviewPhotos");
+  if (!input) return;
+
+  if (input.files.length > 10) {
+    alert("사진은 최대 10장까지만 업로드할 수 있습니다.");
+    input.value = "";
+  }
+}
+/* ===============================
+   관리자 로그인 
+   =============================== */
+function adminLogin() {
+  const email = document.getElementById("adminEmail").value;
+  const password = document.getElementById("adminPassword").value;
+
+  if (email === "clean8904" && password === "ghkstmdzmffls8904!") {
+    openAdminDashboard();
   } else {
-    alert("로그인 실패");
+    alert("관리자 로그인 실패");
   }
 }
 
-function openDashboard(){
-  document.getElementById("loginBox").style.display="none";
-  document.getElementById("dashboard").style.display="block";
-  loadStats();
-  showTab("orders");
-}
-
-function logout(){
-  sessionStorage.clear();
-  location.reload();
+function closeAdminModal() {
+  document.getElementById("adminModal").style.display = "none";
 }
 
 /* ===============================
- 통계
- =============================== */
-async function loadStats(){
-  const { count: orders } = await supabaseClient
-    .from("orders").select("*",{count:"exact",head:true});
-  const { count: customers } = await supabaseClient
-    .from("customers").select("*",{count:"exact",head:true});
-  const { count: assigned } = await supabaseClient
-    .from("orders").select("*",{count:"exact",head:true}).eq("status","배정완료");
+   관리자 대시보드 제어
+   =============================== */
+function openAdminDashboard() {
+  document.getElementById("adminModal").style.display = "none";
+  document.getElementById("adminDashboard").style.display = "block";
+  loadAdminStats();  
+  showAdminTab("reviews"); 
+}
 
-  const { data: prices } = await supabaseClient
-    .from("orders").select("estimated_price_number").not("estimated_price_number","is",null);
+function closeAdminDashboard() {
+  document.getElementById("adminDashboard").style.display = "none";
+}
+/* ===============================
+   관리자 주문 관리
+   =============================== */
+  async function loadAdminStats() {
+  // 1️⃣ 전체 주문 수
+  const { count: totalOrders } = await supabaseClient
+    .from("orders")
+    .select("*", { count: "exact", head: true });
 
-  let avg="-";
-  if(prices && prices.length){
-    avg = Math.round(
-      prices.reduce((a,b)=>a+b.estimated_price_number,0)/prices.length
-    ).toLocaleString();
+  // 2️⃣ 고객 수
+  const { count: totalCustomers } = await supabaseClient
+    .from("customers")
+    .select("*", { count: "exact", head: true });
+
+  // 3️⃣ 배정 완료 주문
+  const { count: completedOrders } = await supabaseClient
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "배정완료");
+    
+// 4️⃣ 평균 객단가 
+const { data: priceData, error: priceError } =
+  await supabaseClient
+    .from("orders")
+    .select("estimated_price_number")
+    .not("estimated_price_number", "is", null);
+
+let avgPrice = "-";
+
+if (!priceError && priceData.length > 0) {
+  const sum = priceData.reduce(
+    (acc, cur) => acc + cur.estimated_price_number,
+    0
+  );
+  avgPrice = Math.round(sum / priceData.length).toLocaleString("ko-KR");
+}
+
+// 5️⃣ 특수청소 비중 
+const specialCount = "-";
+
+  // 화면 반영
+  document.getElementById("statTotalOrders").textContent = totalOrders ?? "-";
+  document.getElementById("statCustomers").textContent = totalCustomers ?? "-";
+  document.getElementById("statCompleted").textContent = completedOrders ?? "-";
+  document.getElementById("statAvgPrice").textContent = avgPrice;
+  document.getElementById("statSpecial").textContent = specialCount ?? "-";
+}
+  async function loadCustomers() {
+  // 1️⃣ 고객 목록
+  const { data: customerData, error: customerError } =
+    await supabaseClient
+      .from("customers")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+  if (customerError) {
+    console.error(customerError);
+    return;
   }
 
-  statOrders.textContent = orders ?? "-";
-  statCustomers.textContent = customers ?? "-";
-  statAssigned.textContent = assigned ?? "-";
-  statAvg.textContent = avg;
+  // 2️⃣ 주문 목록 (이용 횟수 계산용)
+  const { data: orderData, error: orderError } =
+    await supabaseClient
+      .from("orders")
+      .select("phone");
+
+  if (orderError) {
+    console.error(orderError);
+    return;
+  }
+
+  // 3️⃣ 전화번호별 이용 횟수 계산
+  const orderCountMap = {};
+  orderData.forEach(o => {
+    if (!o.phone) return;
+    orderCountMap[o.phone] = (orderCountMap[o.phone] || 0) + 1;
+  });
+
+  // 4️⃣ 고객 + 이용횟수 합치기
+  customers = customerData.map(c => ({
+    id: c.id,
+    name: c.name,
+    phone: c.phone,
+    address: c.address,
+    memo: c.memo || "",
+    count: orderCountMap[c.phone] || 0
+  }));
+
+  renderCustomers();
+}
+  async function updateOrderStatus(orderId, newStatus) {
+  let updateData = {};
+
+  if (newStatus === "입금확인") {
+
+    // 1️⃣ 활성화된 업체 1곳 가져오기
+    const { data: companies, error } = await supabaseClient
+      .from("companies")
+      .select("company_name")
+      .eq("is_active", true)
+      .limit(1);
+
+    if (error || !companies || companies.length === 0) {
+      alert("활성화된 업체가 없습니다");
+      return;
+    }
+
+    // 2️⃣ 첫 번째 업체 배정
+    updateData.status = "배정완료";
+    updateData.assigned_company = companies[0].company_name;
+
+  } else {
+    updateData.status = newStatus;
+  }
+
+  const { error: updateError } = await supabaseClient
+    .from("orders")
+    .update(updateData)
+    .eq("id", orderId);
+
+  if (updateError) {
+    alert("상태 변경 실패");
+    console.error(updateError);
+    return;
+  }
+
+  loadOrders();
 }
 
-/* ===============================
- 탭
- =============================== */
-function showTab(tab){
-  if(tab==="orders") loadOrders();
-  if(tab==="companies") loadCompanies();
-  if(tab==="reviews") loadReviews();
+  function renderNextActionButtons(order) {
+
+  if (order.status === "반려됨") {
+    return `
+      <span style="font-size:12px;color:#c62828;font-weight:600;">
+        고객 반려됨
+      </span>
+      <button
+        style="margin-left:6px;color:#c62828;"
+        onclick="deleteOrder('${order.id}')"
+      >
+        ❌ 삭제
+      </button>
+    `;
+  }
+
+  let buttons = "";
+
+  if (order.status === "접수됨") {
+    buttons += `
+      <button onclick="updateOrderStatus('${order.id}', '입금확인')">
+        💰 입금확인
+      </button>
+      <button onclick="rejectOrder('${order.id}')">
+        ↩ 고객반려
+      </button>
+    `;
+  }
+
+ if (order.status === "접수됨") {
+    buttons += `
+      <button onclick="updateOrderStatus('${order.id}', '배정완료')">
+        ✅ 배정완료
+      </button>
+    `;
+  }
+
+  buttons += `
+    <button
+      style="color:#c62828;"
+      onclick="deleteOrder('${order.id}')"
+    >
+      ❌ 삭제
+    </button>
+  `;
+
+  return buttons;
+}
+  async function rejectOrder(orderId) {
+  const reason = prompt(
+    "반려 사유를 입력하세요.\n예: 전화번호 오류 / 주소 불명확"
+  );
+
+  if (!reason) return;
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({
+      status: "반려됨",
+      memo: reason
+    })
+    .eq("id", orderId);
+
+  if (error) {
+    alert("반려 처리 실패");
+    console.error(error);
+    return;
+  }
+
+  loadOrders();
 }
 
-/* ===============================
- 예약 관리
- =============================== */
-async function loadOrders(){
-  const { data } = await supabaseClient
+async function deleteOrder(orderId) {
+  if (!confirm("이 예약을 완전히 삭제할까요?\n(되돌릴 수 없습니다)")) {
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .delete()
+    .eq("id", orderId);
+
+  if (error) {
+    alert("삭제 실패");
+    console.error(error);
+    return;
+  }
+
+  loadOrders();
+}
+
+async function loadOrders() {
+  const list = document.getElementById("orderList");
+  if (!list) return;
+
+  list.innerHTML = "불러오는 중...";
+
+  const { data, error } = await supabaseClient
     .from("orders")
     .select("*")
-    .order("created_at",{ascending:false});
+    .order("created_at", { ascending: false });
 
-  content.innerHTML = `
-    <h3>📋 예약 관리</h3>
-    ${data.map(o=>`
-      <div class="card">
-        <b>${o.name}</b> (${o.phone})<br>
-        상태: <b>${o.status}</b><br>
-        ${o.assigned_company?`업체: ${o.assigned_company}<br>`:""}
-        <button onclick="assign('${o.id}')">배정</button>
-        <button onclick="reject('${o.id}')">반려</button>
-      </div>
-    `).join("")}
-  `;
-}
+  if (error) {
+    list.innerHTML = "예약 데이터를 불러오지 못했습니다.";
+    console.error(error);
+    return;
+  }
 
-async function assign(id){
-  const { data: c } = await supabaseClient
-    .from("companies")
-    .select("company_name")
-    .eq("is_active",true)
-    .limit(1)
-    .single();
+  if (!data || data.length === 0) {
+    list.innerHTML = "예약 내역이 없습니다.";
+    return;
+  }
 
-  if(!c){ alert("활성 업체 없음"); return; }
-
-  await supabaseClient
-    .from("orders")
-    .update({status:"배정완료",assigned_company:c.company_name})
-    .eq("id",id);
-
-  loadOrders();
-}
-
-async function reject(id){
-  await supabaseClient
-    .from("orders")
-    .update({status:"반려됨"})
-    .eq("id",id);
-  loadOrders();
-}
-
-/* ===============================
- 업체 관리
- =============================== */
-async function loadCompanies(){
-  const { data } = await supabaseClient.from("companies").select("*");
-
-  content.innerHTML = `
-    <h3>🏢 업체 관리</h3>
-    <div class="card">
-      <input id="cname" placeholder="업체명" style="width:100%;padding:8px;" />
-      <button onclick="createCompany()">업체 생성</button>
+  list.innerHTML = data.map(order => `
+  <div style="
+    background:#fff;
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:12px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    font-size:13px;
+  ">
+    <div style="font-weight:700;">
+      ${order.name} (${order.phone})
     </div>
-    ${data.map(c=>`
-      <div class="card">
-        <b>${c.company_name}</b> (${c.is_active?"활성":"비활성"})
-        <button onclick="toggle('${c.id}',${c.is_active})">상태</button>
-      </div>
-    `).join("")}
+<button
+  style="
+    margin-top:6px;
+    padding:6px 10px;
+    border-radius:6px;
+    border:1px solid #0288d1;
+    background:#fff;
+    color:#0288d1;
+    font-size:12px;
+    cursor:pointer;
+    font-weight:600;
+  "
+  onclick="
+    window.selectedOrderId='${order.id}';
+    document.getElementById('selectedOrderInfo').innerText =
+      '선택된 주문: ${order.name} (${order.phone})';
+      <button
+  onclick="addReview()"
+  id="addReviewBtn"
+>
+  리뷰 추가
+</button>
+  "
+>
+  📝 리뷰 선택
+</button>
+
+<div style="margin-top:6px;color:#555;">
+  주소: ${order.address || "-"}<br>
+  구조/평수: ${order.structure || "-"} / ${order.supply_area ?? "-"}평<br>
+  상태: <b>${order.status}</b><br>
+  청소일: ${order.clean_date || "-"}<br>
+시간: ${order.clean_time || "-"}<br>
+${order.side_clean_time ? `사이청소 시간: ${order.side_clean_time}<br>` : ""}
+  ${order.assigned_company ? `배정업체: <b>${order.assigned_company}</b><br>` : ""}
+</div>
+
+    ${
+      order.status === "반려됨" && order.memo
+        ? `
+        <div style="
+          margin-top:8px;
+          padding:8px;
+          border-radius:8px;
+          background:#fdecea;
+          color:#c62828;
+          font-size:12px;
+          font-weight:600;
+        ">
+          📌 반려 사유: ${order.memo}
+        </div>
+        `
+        : ""
+    }
+
+    <div style="margin-top:10px;">
+      ${renderNextActionButtons(order)}
+    </div>
+
+    <div style="margin-top:6px;font-size:11px;color:#888;">
+      접수일: ${new Date(order.created_at).toLocaleString("ko-KR")}
+    </div>
+  </div>
+`).join("");
+}
+  
+  
+let orderAutoRefreshTimer = null;
+
+function showAdminTab(tab) {
+  const box = document.getElementById("adminContent");
+    // 예약 관리 탭이 아니면 자동 새로고침 중지
+  if (tab !== "orders" && orderAutoRefreshTimer) {
+    clearInterval(orderAutoRefreshTimer);
+    orderAutoRefreshTimer = null;
+  }
+  /* ===============================
+     고객 관리
+     =============================== */
+ if (tab === "customers") {
+  box.innerHTML = `
+    <h3>👤 고객 관리</h3>
+    <div id="customerList" style="margin-top:16px;"></div>
   `;
+
+  loadCustomers();
+  return;
+}
+  /* ===============================
+     예약 관리
+     =============================== */
+if (tab === "orders") {
+  box.innerHTML = `
+    <h3>📋 예약 관리</h3>
+    <div id="orderList" style="margin-top:16px;"></div>
+  `;
+
+  // 기존 타이머 있으면 제거
+  if (orderAutoRefreshTimer) {
+    clearInterval(orderAutoRefreshTimer);
+    orderAutoRefreshTimer = null;
+  }
+
+  // 최초 1회 로드
+  loadOrders();
+
+
+  orderAutoRefreshTimer = setInterval(() => {
+    loadOrders();
+  }, 5000);
+
+  return;
 }
 
-async function createCompany(){
-  const name=document.getElementById("cname").value.trim();
-  if(!name) return alert("업체명");
-  await supabaseClient.from("companies").insert({company_name:name,is_active:true});
+  /* ===============================
+     업체 관리
+     =============================== */
+ if (tab === "companies") {
+  box.innerHTML = `
+    <h3>🏢 업체 관리</h3>
+
+    <div style="
+      margin-top:12px;
+      padding:16px;
+      background:#fff;
+      border-radius:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    ">
+      <h4 style="margin-bottom:10px;">업체 생성</h4>
+
+      <input
+        id="newCompanyName"
+        placeholder="업체명"
+        style="width:100%;padding:10px;margin-bottom:8px;"
+      />
+
+      <label style="font-size:13px;">
+        <input type="checkbox" id="newCompanyActive" checked />
+        활성화
+      </label>
+
+      <button
+        style="
+          margin-top:12px;
+          padding:10px 14px;
+          border-radius:8px;
+          border:none;
+          background:#0288d1;
+          color:#fff;
+          font-weight:700;
+          cursor:pointer;
+        "
+        onclick="createCompany()"
+      >
+        업체 생성
+      </button>
+    </div>
+
+    <div id="companyList" style="margin-top:16px;"></div>
+  `;
+
+  loadCompanies();
+  return;
+}
+  async function createCompany() {
+  const name = document.getElementById("newCompanyName").value.trim();
+  const isActive = document.getElementById("newCompanyActive").checked;
+
+  if (!name) {
+    alert("업체명을 입력하세요");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("companies")
+    .insert([{ company_name: name, is_active: isActive }]);
+
+  if (error) {
+    console.error(error);
+    alert("업체 생성 실패");
+    return;
+  }
+
+  alert("업체 생성 완료");
+  document.getElementById("newCompanyName").value = "";
+  loadCompanies();
+}
+  async function loadCompanies() {
+  const { data, error } = await supabaseClient
+    .from("companies")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    alert("업체 목록 로드 실패");
+    return;
+  }
+
+  const list = document.getElementById("companyList");
+  if (!list) return;
+
+  if (!data || data.length === 0) {
+    list.innerHTML = "등록된 업체 없음";
+    return;
+  }
+
+  list.innerHTML = data.map(c => `
+    <div style="
+      background:#fff;
+      border-radius:12px;
+      padding:14px;
+      margin-bottom:10px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.06);
+    ">
+      <b>${c.company_name}</b>
+      <span style="
+        margin-left:6px;
+        font-size:11px;
+        padding:2px 8px;
+        border-radius:999px;
+        background:${c.is_active ? "#e3f2fd" : "#fdecea"};
+        color:${c.is_active ? "#1565c0" : "#c62828"};
+      ">
+        ${c.is_active ? "활성" : "비활성"}
+      </span>
+
+      <div style="margin-top:8px;">
+        <button onclick="toggleCompanyActive('${c.id}', ${c.is_active})">
+          상태 변경
+        </button>
+        <button onclick="deleteCompany('${c.id}')" style="color:#c62828;">
+          삭제
+        </button>
+      </div>
+    </div>
+  `).join("");
+}
+async function toggleCompanyActive(id, current) {
+  const { error } = await supabaseClient
+    .from("companies")
+    .update({ is_active: !current })
+    .eq("id", id);
+
+  if (error) {
+    alert("상태 변경 실패");
+    return;
+  }
+
+  loadCompanies();
+}
+async function deleteCompany(id) {
+  if (!confirm("이 업체를 삭제할까요?")) return;
+
+  const { error } = await supabaseClient
+    .from("companies")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("삭제 실패");
+    return;
+  }
+
   loadCompanies();
 }
 
-async function toggle(id,cur){
-  await supabaseClient.from("companies").update({is_active:!cur}).eq("id",id);
-  loadCompanies();
+  
+ /* ===============================
+     리뷰 관리
+     =============================== */
+if (tab === "reviews") {
+  box.innerHTML = `
+    <h3>⭐ 리뷰 관리</h3>
+    <div id="selectedOrderInfo"
+     style="margin:6px 0;font-size:12px;color:#0288d1;font-weight:600;">
+  선택된 주문 없음
+</div>
+
+    <div style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:8px;">
+      <h4>리뷰 추가</h4>
+
+      <!-- 만족도 버튼(3개) -->
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button type="button" class="review-btn" onclick="selectAdminReviewScore(5)">😊 너무 만족해요</button>
+        <button type="button" class="review-btn" onclick="selectAdminReviewScore(4)">🙂 만족해요</button>
+        <button type="button" class="review-btn" onclick="selectAdminReviewScore(2)">😐 아쉬워요</button>
+      </div>
+
+      <input id="reviewAuthor" placeholder="작성자(예: 김**)"
+        style="width:100%;padding:8px;margin-bottom:6px;" />
+
+      <textarea id="reviewText" placeholder="리뷰 내용"
+        style="width:100%;padding:8px;height:80px;margin-bottom:6px;"></textarea>
+
+      <!-- 📸 사진 업로드 -->
+      <div style="margin:8px 0;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">
+          후기 사진 업로드 (최대 10장)
+        </div>
+        <input
+          id="reviewPhotos"
+          type="file"
+          accept="image/*"
+          multiple
+          onchange="checkAdminReviewPhotos()"
+        />
+      </div>
+
+      <button
+  onclick="addReview()"
+  id="addReviewBtn"
+  disabled
+>
+  리뷰 추가
+</button>
+    </div>
+
+    <div id="reviewList" style="margin-top:16px;"></div>
+  `;
+
+  loadAdminReviews();
+
+  return;
+}
+}
+
+function renderReviews() {
+  const list = document.getElementById("reviewList");
+  if (!list) return;
+
+  list.innerHTML = adminReviews.map((r, i) => `
+    <div style="border-bottom:1px solid #eee;padding:10px 0;">
+      <strong>${"★".repeat(r.star)}</strong><br/>
+      <b>${r.author}</b><br/>
+      <div style="font-size:13px;">${r.text}</div>
+
+      ${
+        r.photos && r.photos.length > 0
+          ? `
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;margin-top:6px;">
+            ${r.photos.map(url => `
+              <img src="${url}" style="width:100%;height:80px;object-fit:cover;border-radius:6px;" />
+            `).join("")}
+          </div>
+          `
+          : ""
+      }
+
+      <div style="margin-top:6px;">
+        <button onclick="toggleReview(${i})">
+          ${r.visible ? "노출중" : "비노출"}
+        </button>
+        <button onclick="deleteReview(${i})">삭제</button>
+      </div>
+    </div>
+  `).join("");
+}
+async function toggleReview(index) {
+  const review = adminReviews[index];
+  if (!review) return;
+
+  const { error } = await supabaseClient
+    .from("reviews")
+    .update({ visible: !review.visible })
+    .eq("id", review.id);
+
+  if (error) {
+    alert("노출 상태 변경 실패");
+    console.error(error);
+    return;
+  }
+
+  loadAdminReviews();
+  loadPublicReviews();
+}
+
+async function deleteReview(index) {
+  const review = adminReviews[index];
+  if (!review) return;
+
+  if (!confirm("이 리뷰를 삭제할까요?")) return;
+
+  const { error } = await supabaseClient
+    .from("reviews")
+    .delete()
+    .eq("id", review.id);
+
+  if (error) {
+    alert("리뷰 삭제 실패");
+    console.error(error);
+    return;
+  }
+
+  loadAdminReviews();
+  loadPublicReviews();
+}  
+    
+async function uploadReviewPhotos(files) {
+  const uploadedUrls = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+
+    const fileExt = file.name.split(".").pop();
+    const fileName = `reviews/${crypto.randomUUID()}.${fileExt}`;
+
+const { data, error } = await supabaseClient
+  .storage
+  .from("review-photos")
+  .upload(fileName, file);
+
+    if (error) {
+      alert("사진 업로드 실패");
+      console.error(error);
+      return [];
+    }
+
+const { data: publicData } = supabaseClient
+  .storage
+  .from("review-photos")
+  .getPublicUrl(fileName);
+
+    uploadedUrls.push(publicData.publicUrl);
+  }
+
+  return uploadedUrls;
+}
+async function addReview() {
+  // 1) 주문 선택 확인
+  if (!window.selectedOrderId) {
+    alert("후기를 작성할 주문을 먼저 선택해주세요.");
+    return;
+  }
+
+  // 2) 만족도 선택 확인
+  if (!adminReviewScore) {
+    alert("만족도를 먼저 선택해주세요.");
+    return;
+  }
+
+  // 3) 동일 주문 리뷰 존재 여부 체크 (핵심!)
+  const { data: exists, error: existsError } = await supabaseClient
+    .from("reviews")
+    .select("id")
+    .eq("order_id", window.selectedOrderId)
+    .maybeSingle();
+
+  if (existsError) {
+    console.error(existsError);
+    alert("리뷰 중복 확인 중 오류가 발생했습니다.");
+    return;
+  }
+
+  if (exists) {
+    alert("이 주문에는 이미 후기가 등록되어 있습니다.");
+    return;
+  }
+
+  // 4) 입력값
+  const author = document.getElementById("reviewAuthor").value.trim();
+  const text = document.getElementById("reviewText").value.trim();
+  const photoInput = document.getElementById("reviewPhotos");
+
+  if (!author || !text) {
+    alert("작성자와 리뷰 내용은 필수입니다.");
+    return;
+  }
+
+  // 5) 사진 업로드
+  let photoUrls = [];
+  if (photoInput && photoInput.files.length > 0) {
+    if (photoInput.files.length > 10) {
+      alert("사진은 최대 10장까지만 업로드할 수 있습니다.");
+      return;
+    }
+    photoUrls = await uploadReviewPhotos(photoInput.files);
+    if (!photoUrls || photoUrls.length === 0) {
+      // 업로드 실패하면 중단
+      return;
+    }
+  }
+
+  // 6) DB 저장 (order_id 변수 절대 실수 금지!)
+  const { error } = await supabaseClient
+    .from("reviews")
+.insert([{
+  order_id: window.selectedOrderId,
+  author,
+  text,
+  star: adminReviewScore,
+  photos: photoUrls,
+  visible: true
+}]);
+
+  if (error) {
+    console.error(error);
+    alert("후기 저장 실패");
+    return;
+  }
+
+  // 7) 초기화
+  adminReviewScore = null;
+  document.getElementById("reviewAuthor").value = "";
+  document.getElementById("reviewText").value = "";
+  if (photoInput) photoInput.value = "";
+
+  alert("후기가 등록되었습니다.");
+
+  loadAdminReviews();
+  loadPublicReviews();
 }
 
 /* ===============================
- 리뷰 관리 (조회만)
- =============================== */
-async function loadReviews(){
-  const { data } = await supabaseClient.from("reviews").select("*");
-  content.innerHTML = `
-    <h3>⭐ 리뷰 관리</h3>
-    ${data.map(r=>`
-      <div class="card">
-        ${"★".repeat(r.star)}<br>
-        ${r.author}<br>
+   고객 화면 리뷰 렌더링
+   =============================== */
+function renderPublicReviews() {
+  const box = document.getElementById("publicReviewList");
+  if (!box) return;
+
+  box.innerHTML = publicReviews.map(r => `
+    <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.06);font-size:13px;">
+      <div style="color:#f5a623;font-size:14px;margin-bottom:4px;">
+        ${"★".repeat(r.star)}
+      </div>
+     <div style="margin-bottom:6px;font-weight:600;">
+  ${r.author || "실제 이용 고객"}
+</div>
+      <div style="color:#4b5665;">
         ${r.text}
       </div>
-    `).join("")}
-  `;
+
+      ${
+        r.photos && r.photos.length > 0
+          ? `
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;margin-top:10px;">
+            ${r.photos.map(url => `
+              <img src="${url}" style="width:100%;height:90px;object-fit:cover;border-radius:8px;" />
+            `).join("")}
+          </div>
+          `
+          : ""
+      }
+
+      <div style="margin-top:10px;font-size:11px;color:#8a94a6;">
+        클린메이트 실제 이용 고객 후기
+      </div>
+    </div>
+  `).join("");
+}
+function renderBAGallery() {
+  const box = document.getElementById("baGallery");
+  if (!box) return;
+
+  box.innerHTML = publicReviews
+    .filter(r => r.visible && r.photos && r.photos.length > 0)
+    .flatMap(r => r.photos)
+    .map(url => `
+      <div class="ba-card">
+        <img src="${url}" />
+        <div class="ba-card-footer">
+          <span>실제 고객 작업</span>
+          <span class="tag">후기 기반</span>
+        </div>
+      </div>
+    `)
+    .join("");
+}
+document.addEventListener("DOMContentLoaded", () => {
+  loadPublicReviews();
+});
+
+function renderCustomers() {
+  const list = document.getElementById("customerList");
+  if (!list) return;
+
+  list.innerHTML = customers.map((c, i) => `
+    <div style="
+      background:#fff;
+      border-radius:12px;
+      padding:14px;
+      margin-bottom:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    ">
+      <div style="font-weight:700;">
+        ${c.name}
+        <span style="color:#666;font-size:12px;">
+          (${c.phone})
+        </span>
+      </div>
+
+      <div style="font-size:13px;color:#555;margin-top:4px;">
+        주소: ${c.address}<br>
+        이용 횟수: <b>${c.count}회</b>
+      </div>
+
+<textarea
+  style="
+    width:100%;
+    margin-top:8px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    padding:8px;
+    font-size:12px;
+  "
+  placeholder="관리자 메모"
+  onchange="customers[${i}].memo = this.value"
+>${c.memo}</textarea>
+
+<button
+  style="
+    margin-top:8px;
+    padding:6px 10px;
+    border:1px solid #ddd;
+    border-radius:6px;
+    background:#fff;
+    cursor:pointer;
+    font-size:12px;
+  "
+  onclick="deleteCustomer(${i})"
+>
+  🗑 고객 삭제
+</button>
+    </div>
+  `).join("");
+}
+function deleteCustomer(i) {
+  if (confirm("이 고객 정보를 삭제할까요?")) {
+    customers.splice(i, 1);
+    renderCustomers();
+  }
 }
 
-/* ===============================
- 자동 로그인 유지
- =============================== */
-if(sessionStorage.getItem("admin")==="true"){
-  openDashboard();
-}
 </script>
-
-</body>
-</html>
