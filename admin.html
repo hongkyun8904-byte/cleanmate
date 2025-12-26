@@ -491,46 +491,8 @@ let adminClickTimer = null;
 
 
 </script>
-<div id="adminModal" style="
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.6);
-  z-index:9999;
-">
-  <div style="
-    background:#fff;
-    max-width:360px;
-    margin:15% auto;
-    padding:24px;
-    border-radius:12px;
-  ">
-    <h3 style="text-align:center;margin-bottom:16px;">
-      CleanMate 관리자 로그인
-    </h3>
-
-<input id="adminEmail" type="text" placeholder="관리자 아이디"
-  style="width:100%;padding:10px;margin-bottom:10px;" />
-
-    <input id="adminPassword" type="password" placeholder="비밀번호"
-      style="width:100%;padding:10px;margin-bottom:16px;" />
-
-<button onclick="adminLogin()"
-  style="width:100%;padding:12px;background:#111;color:#fff;border:none;">
-  로그인
-</button>
-
-    <button onclick="closeAdminModal()"
-      style="width:100%;margin-top:8px;padding:10px;">
-      취소
-    </button>
-  </div>
-</div>
-
 <script>
-/* ===============================
-   관리자 진입 트리거 (푸터 5번 클릭)
-   =============================== */
+
 /* ===============================
    업체 데이터 (관리자 전용)
    =============================== */
@@ -597,30 +559,11 @@ function checkAdminReviewPhotos(){
 /* ===============================
    관리자 로그인 
    =============================== */
-function adminLogin() {
-  const email = document.getElementById("adminEmail").value;
-  const password = document.getElementById("adminPassword").value;
 
-  if (email === "clean8904" && password === "ghkstmdzmffls8904!") {
-    openAdminDashboard();
-  } else {
-    alert("관리자 로그인 실패");
-  }
-}
-
-function closeAdminModal() {
-  document.getElementById("adminModal").style.display = "none";
-}
 
 /* ===============================
    관리자 대시보드 제어
    =============================== */
-function openAdminDashboard() {
-  document.getElementById("adminModal").style.display = "none";
-  document.getElementById("adminDashboard").style.display = "block";
-  loadAdminStats();  
-  showAdminTab("reviews"); 
-}
 
 function closeAdminDashboard() {
   document.getElementById("adminDashboard").style.display = "none";
