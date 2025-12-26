@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>CleanMate 관리자</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body{
+      margin:0;
+      padding:20px;
+      font-family:-apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui;
+      background:#f5f7fb;
+    }
+    h2,h3{margin:0}
+    button{
+      padding:8px 14px;
+      border-radius:8px;
+      border:1px solid #ccc;
+      background:#fff;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .card{
+      background:#fff;
+      border-radius:14px;
+      padding:14px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+      margin-bottom:12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ===============================
+ 관리자 로그인
+ =============================== -->
+<div id="loginBox" class="card" style="max-width:360px;margin:120px auto;">
+  <h3 style="text-align:center;margin-bottom:12px;">CleanMate 관리자 로그인</h3>
+
+  <input id="adminId" placeholder="아이디"
+    style="width:100%;padding:10px;margin-bottom:8px;" />
+
+  <input id="adminPw" type="password" placeholder="비밀번호"
+    style="width:100%;padding:10px;margin-bottom:12px;" />
+
+  <button style="width:100%;" onclick="adminLogin()">로그인</button>
+</div>
+
+<!-- ===============================
+ 관리자 대시보드
+ =============================== -->
+<div id="dashboard" style="display:none;max-width:1200px;margin:0 auto;">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div>
+      <h2>CleanMate 관리자</h2>
+      <div style="font-size:12px;color:#666;">견적 · 주문 · 업체 · 리뷰 관리</div>
+    </div>
+    <button onclick="logout()">로그아웃</button>
+  </div>
+
+  <!-- 통계 -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="card"><b>누적 견적</b><br><span id="statOrders">-</span></div>
+    <div class="card"><b>고객 수</b><br><span id="statCustomers">-</span></div>
+    <div class="card"><b>배정 완료</b><br><span id="statAssigned">-</span></div>
+    <div class="card"><b>평균 객단가</b><br><span id="statAvg">-</span></div>
+  </div>
+
+  <!-- 탭 -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;">
+    <button onclick="showTab('orders')">📋 예약</button>
+    <button onclick="showTab('companies')">🏢 업체</button>
+    <button onclick="showTab('reviews')">⭐ 리뷰</button>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<script>
+/* ===============================
+ Supabase
+ =============================== */
+const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+/* ===============================
+ 로그인
+ =============================== */
+function adminLogin(){
+  const id = document.getElementById("adminId").value;
+  const pw = document.getElementById("adminPw").value;
+
+  if(id === "clean8904" && pw === "ghkstmdzmffls8904!"){
+    sessionStorage.setItem("admin", "true");
+    openDashboard();
+  } else {
+    alert("로그인 실패");
+  }
+}
+
+function openDashboard(){
+  document.getElementById("loginBox").style.display="none";
+  document.getElementById("dashboard").style.display="block";
+  loadStats();
+  showTab("orders");
+}
+
+function logout(){
+  sessionStorage.clear();
+  location.reload();
+}
+
+/* ===============================
+ 통계
+ =============================== */
+async function loadStats(){
+  const { count: orders } = await supabaseClient
+    .from("orders").select("*",{count:"exact",head:true});
+  const { count: customers } = await supabaseClient
+    .from("customers").select("*",{count:"exact",head:true});
+  const { count: assigned } = await supabaseClient
+    .from("orders").select("*",{count:"exact",head:true}).eq("status","배정완료");
+
+  const { data: prices } = await supabaseClient
+    .from("orders").select("estimated_price_number").not("estimated_price_number","is",null);
+
+  let avg="-";
+  if(prices && prices.length){
+    avg = Math.round(
+      prices.reduce((a,b)=>a+b.estimated_price_number,0)/prices.length
+    ).toLocaleString();
+  }
+
+  statOrders.textContent = orders ?? "-";
+  statCustomers.textContent = customers ?? "-";
+  statAssigned.textContent = assigned ?? "-";
+  statAvg.textContent = avg;
+}
+
+/* ===============================
+ 탭
+ =============================== */
+function showTab(tab){
+  if(tab==="orders") loadOrders();
+  if(tab==="companies") loadCompanies();
+  if(tab==="reviews") loadReviews();
+}
+
+/* ===============================
+ 예약 관리
+ =============================== */
+async function loadOrders(){
+  const { data } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .order("created_at",{ascending:false});
+
+  content.innerHTML = `
+    <h3>📋 예약 관리</h3>
+    ${data.map(o=>`
+      <div class="card">
+        <b>${o.name}</b> (${o.phone})<br>
+        상태: <b>${o.status}</b><br>
+        ${o.assigned_company?`업체: ${o.assigned_company}<br>`:""}
+        <button onclick="assign('${o.id}')">배정</button>
+        <button onclick="reject('${o.id}')">반려</button>
+      </div>
+    `).join("")}
+  `;
+}
+
+async function assign(id){
+  const { data: c } = await supabaseClient
+    .from("companies")
+    .select("company_name")
+    .eq("is_active",true)
+    .limit(1)
+    .single();
+
+  if(!c){ alert("활성 업체 없음"); return; }
+
+  await supabaseClient
+    .from("orders")
+    .update({status:"배정완료",assigned_company:c.company_name})
+    .eq("id",id);
+
+  loadOrders();
+}
+
+async function reject(id){
+  await supabaseClient
+    .from("orders")
+    .update({status:"반려됨"})
+    .eq("id",id);
+  loadOrders();
+}
+
+/* ===============================
+ 업체 관리
+ =============================== */
+async function loadCompanies(){
+  const { data } = await supabaseClient.from("companies").select("*");
+
+  content.innerHTML = `
+    <h3>🏢 업체 관리</h3>
+    <div class="card">
+      <input id="cname" placeholder="업체명" style="width:100%;padding:8px;" />
+      <button onclick="createCompany()">업체 생성</button>
+    </div>
+    ${data.map(c=>`
+      <div class="card">
+        <b>${c.company_name}</b> (${c.is_active?"활성":"비활성"})
+        <button onclick="toggle('${c.id}',${c.is_active})">상태</button>
+      </div>
+    `).join("")}
+  `;
+}
+
+async function createCompany(){
+  const name=document.getElementById("cname").value.trim();
+  if(!name) return alert("업체명");
+  await supabaseClient.from("companies").insert({company_name:name,is_active:true});
+  loadCompanies();
+}
+
+async function toggle(id,cur){
+  await supabaseClient.from("companies").update({is_active:!cur}).eq("id",id);
+  loadCompanies();
+}
+
+/* ===============================
+ 리뷰 관리 (조회만)
+ =============================== */
+async function loadReviews(){
+  const { data } = await supabaseClient.from("reviews").select("*");
+  content.innerHTML = `
+    <h3>⭐ 리뷰 관리</h3>
+    ${data.map(r=>`
+      <div class="card">
+        ${"★".repeat(r.star)}<br>
+        ${r.author}<br>
+        ${r.text}
+      </div>
+    `).join("")}
+  `;
+}
+
+/* ===============================
+ 자동 로그인 유지
+ =============================== */
+if(sessionStorage.getItem("admin")==="true"){
+  openDashboard();
+}
+</script>
+
+</body>
+</html>
