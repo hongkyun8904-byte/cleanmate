@@ -100,10 +100,11 @@ async function loadOrders(){
   list.innerHTML = "불러오는 중...";
 
   const { data, error } = await supabaseClient
-    .from("orders")
-    .select("*")
-    .eq("assigned_company", COMPANY_NAME)
-    .order("created_at", { ascending:false });
+  .from("orders")
+.select("*")
+.eq("status", "배정완료")
+.eq("assigned_company", "환승클린")
+.order("created_at", { ascending:false });
 
   if(error){
     list.innerHTML = "주문 불러오기 실패";
