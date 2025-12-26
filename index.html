@@ -1791,15 +1791,6 @@ window.addEventListener("load", () => {
 /* ===============================
    업체 데이터 (관리자 전용)
    =============================== */
-let companies = [
-  {
-    name: "환승클린",
-    desc: "클린메이트 검증 1호 청소업체",
-    rating: 5,
-    visible: true,
-    image: ""
-  }
-];
 
 /* ===============================
    리뷰 데이터 (관리자 전용)
@@ -2246,31 +2237,157 @@ if (tab === "orders") {
   /* ===============================
      업체 관리
      =============================== */
-  if (tab === "companies") {
-    box.innerHTML = `
-      <h3>🏢 업체 관리</h3>
+ if (tab === "companies") {
+  box.innerHTML = `
+    <h3>🏢 업체 관리</h3>
 
-      <div style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:8px;">
-        <h4>업체 추가</h4>
+    <div style="
+      margin-top:12px;
+      padding:16px;
+      background:#fff;
+      border-radius:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    ">
+      <h4 style="margin-bottom:10px;">업체 생성</h4>
 
-        <input id="companyName" placeholder="업체명"
-          style="width:100%;padding:8px;margin-bottom:6px;" />
+      <input
+        id="newCompanyName"
+        placeholder="업체명"
+        style="width:100%;padding:10px;margin-bottom:8px;"
+      />
 
-        <input id="companyDesc" placeholder="간단 소개글"
-          style="width:100%;padding:8px;margin-bottom:6px;" />
+      <label style="font-size:13px;">
+        <input type="checkbox" id="newCompanyActive" checked />
+        활성화
+      </label>
 
-        <input id="companyImage" placeholder="대표 이미지 URL (선택)"
-          style="width:100%;padding:8px;margin-bottom:6px;" />
+      <button
+        style="
+          margin-top:12px;
+          padding:10px 14px;
+          border-radius:8px;
+          border:none;
+          background:#0288d1;
+          color:#fff;
+          font-weight:700;
+          cursor:pointer;
+        "
+        onclick="createCompany()"
+      >
+        업체 생성
+      </button>
+    </div>
 
-        <button onclick="addCompany()">업체 추가</button>
-      </div>
+    <div id="companyList" style="margin-top:16px;"></div>
+  `;
 
-      <div id="companyList" style="margin-top:16px;"></div>
-    `;
-    renderCompanies();
+  loadCompanies();
+  return;
+}
+  async function createCompany() {
+  const name = document.getElementById("newCompanyName").value.trim();
+  const isActive = document.getElementById("newCompanyActive").checked;
+
+  if (!name) {
+    alert("업체명을 입력하세요");
     return;
   }
 
+  const { error } = await supabaseClient
+    .from("companies")
+    .insert([{ company_name: name, is_active: isActive }]);
+
+  if (error) {
+    console.error(error);
+    alert("업체 생성 실패");
+    return;
+  }
+
+  alert("업체 생성 완료");
+  document.getElementById("newCompanyName").value = "";
+  loadCompanies();
+}
+  async function loadCompanies() {
+  const { data, error } = await supabaseClient
+    .from("companies")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    alert("업체 목록 로드 실패");
+    return;
+  }
+
+  const list = document.getElementById("companyList");
+  if (!list) return;
+
+  if (!data || data.length === 0) {
+    list.innerHTML = "등록된 업체 없음";
+    return;
+  }
+
+  list.innerHTML = data.map(c => `
+    <div style="
+      background:#fff;
+      border-radius:12px;
+      padding:14px;
+      margin-bottom:10px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.06);
+    ">
+      <b>${c.company_name}</b>
+      <span style="
+        margin-left:6px;
+        font-size:11px;
+        padding:2px 8px;
+        border-radius:999px;
+        background:${c.is_active ? "#e3f2fd" : "#fdecea"};
+        color:${c.is_active ? "#1565c0" : "#c62828"};
+      ">
+        ${c.is_active ? "활성" : "비활성"}
+      </span>
+
+      <div style="margin-top:8px;">
+        <button onclick="toggleCompanyActive('${c.id}', ${c.is_active})">
+          상태 변경
+        </button>
+        <button onclick="deleteCompany('${c.id}')" style="color:#c62828;">
+          삭제
+        </button>
+      </div>
+    </div>
+  `).join("");
+}
+async function toggleCompanyActive(id, current) {
+  const { error } = await supabaseClient
+    .from("companies")
+    .update({ is_active: !current })
+    .eq("id", id);
+
+  if (error) {
+    alert("상태 변경 실패");
+    return;
+  }
+
+  loadCompanies();
+}
+async function deleteCompany(id) {
+  if (!confirm("이 업체를 삭제할까요?")) return;
+
+  const { error } = await supabaseClient
+    .from("companies")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("삭제 실패");
+    return;
+  }
+
+  loadCompanies();
+}
+
+  
  /* ===============================
      리뷰 관리
      =============================== */
@@ -2575,60 +2692,6 @@ document.addEventListener("DOMContentLoaded", () => {
   loadPublicReviews();
 });
 
-function renderCompanies() {
-  const list = document.getElementById("companyList");
-  if (!list) return;
-
-  list.innerHTML = companies.map((c, i) => `
-    <div style="border-bottom:1px solid #eee;padding:10px 0;">
-      <b>${c.name}</b>
-<span style="
-  margin-left:6px;
-  font-size:11px;
-  padding:2px 8px;
-  border-radius:999px;
-  background:${c.visible ? "#e3f2fd" : "#fbe9e7"};
-  color:${c.visible ? "#1565c0" : "#c62828"};
-">
-  ${c.visible ? "노출중" : "비노출"}
-</span><br/>
-      <div style="font-size:13px;color:#555;">${c.desc}</div>
-
-      <div style="margin-top:6px;">
-        <button onclick="toggleCompany(${i})">
-          ${c.visible ? "노출중" : "비노출"}
-        </button>
-        <button onclick="deleteCompany(${i})">삭제</button>
-      </div>
-    </div>
-  `).join("");
-}
-
-function addCompany() {
-  const name = document.getElementById("companyName").value;
-  const desc = document.getElementById("companyDesc").value;
-  const image = document.getElementById("companyImage").value;
-
-  if (!name || !desc) {
-    alert("업체명과 소개글은 필수입니다.");
-    return;
-  }
-
-  companies.unshift({
-    name,
-    desc,
-    rating: 5,
-    visible: true,
-    image
-  });
-
-  renderCompanies();
-}
-
-function toggleCompany(i) {
-  companies[i].visible = !companies[i].visible;
-  renderCompanies();
-}
 function renderCustomers() {
   const list = document.getElementById("customerList");
   if (!list) return;
@@ -2689,12 +2752,7 @@ function deleteCustomer(i) {
     renderCustomers();
   }
 }
-function deleteCompany(i) {
-  if (confirm("이 업체를 삭제할까요?")) {
-    companies.splice(i, 1);
-    renderCompanies();
-  }
-}
+
 </script>
 
 <!-- 매칭 로딩 화면 -->
@@ -2722,6 +2780,7 @@ function deleteCompany(i) {
 </div>
 </body>
 </html>
+
 
 
 
