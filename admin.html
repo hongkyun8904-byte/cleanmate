@@ -1,8 +1,17 @@
 <script>
   const pw = prompt("관리자 비밀번호를 입력하세요");
+
   if (pw !== "ghkstmdzmffls8904!") {
     alert("접근 불가");
     location.href = "index.html";
+  } else {
+    // ✅ 비밀번호 맞으면 관리자 대시보드 열기
+    window.addEventListener("DOMContentLoaded", () => {
+      const admin = document.getElementById("adminDashboard");
+      if (admin) {
+        admin.style.display = "block";
+      }
+    });
   }
 </script>
 
@@ -480,29 +489,7 @@ window.location.href = "confirm.html";
 let adminClickCount = 0;
 let adminClickTimer = null;
 
-window.addEventListener("load", () => {
-  const footer = document.getElementsByTagName("footer")[0];
-  if (!footer) {
-    alert("footer 못 찾음");
-    return;
-  }
 
-  footer.onclick = () => {
-    adminClickCount++;
-
-    if (adminClickCount === 1) {
-      adminClickTimer = setTimeout(() => {
-        adminClickCount = 0;
-      }, 5000);
-    }
-
-    if (adminClickCount === 5) {
-      clearTimeout(adminClickTimer);
-      adminClickCount = 0;
-      document.getElementById("adminModal").style.display = "block";
-    }
-  };
-});
 </script>
 <div id="adminModal" style="
   display:none;
