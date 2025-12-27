@@ -188,39 +188,7 @@ function updateApplyButtonText() {
   }
 
 /* ✅ 메인 섹션 탭 전환 */
-function showMainSection(type){
 
-  // 1️⃣ 전부 숨김
-  document.getElementById("estimate-section").style.display = "none";
-  document.getElementById("review-section").style.display = "none";
-  document.getElementById("gallery-section").style.display = "none";
-
-  // 2️⃣ 버튼 active 제거
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.classList.remove("active");
-  });
-
-  // 3️⃣ 선택한 것만 보여주기
-  if(type === "estimate"){
-    document.getElementById("estimate-section").style.display = "block";
-    document.querySelectorAll(".tab-btn")[0].classList.add("active");
-  }
-
-  if(type === "review"){
-    document.getElementById("review-section").style.display = "block";
-    document.querySelectorAll(".tab-btn")[1].classList.add("active");
-  }
-
-  if(type === "gallery"){
-    document.getElementById("gallery-section").style.display = "block";
-    document.querySelectorAll(".tab-btn")[2].classList.add("active");
-  }
-}
-
-/* ✅ 처음 화면은 견적만 */
-document.addEventListener("DOMContentLoaded", () => {
-  showMainSection("estimate");
-});
 function goMyPage() {
   window.location.href = "mypage.html";
 }
