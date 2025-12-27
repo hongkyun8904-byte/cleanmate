@@ -1,3 +1,17 @@
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+/* ✅ Supabase 연결 (전역) */
+const SUPABASE_URL = "https://너프로젝트아이디.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_XXXXXXXXXXXXXXXXXXXX";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+console.log("✅ supabaseClient ready", supabaseClient);
+</script>
 <script>
 const pw = prompt("관리자 비밀번호를 입력하세요");
 
