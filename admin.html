@@ -1,9 +1,10 @@
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 /* ✅ Supabase 연결 (전역) */
-const SUPABASE_URL = "https://너프로젝트아이디.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_XXXXXXXXXXXXXXXXXXXX";
+const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
 
 const supabaseClient = supabase.createClient(
   SUPABASE_URL,
@@ -19,9 +20,7 @@ if (pw !== "ghkstmdzmffls8904!") {
   alert("접근 불가");
   location.href = "index.html";
 } else {
-  window.addEventListener("DOMContentLoaded", () => {
-    openAdminDashboard();
-  });
+  openAdminDashboard();
 }
 
 function openAdminDashboard() {
