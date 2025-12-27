@@ -1,20 +1,28 @@
 <script>
-  const pw = prompt("관리자 비밀번호를 입력하세요");
+const pw = prompt("관리자 비밀번호를 입력하세요");
 
-  if (pw !== "ghkstmdzmffls8904!") {
-    alert("접근 불가");
-    location.href = "index.html";
-  } else {
-    // ✅ 비밀번호 맞으면 관리자 대시보드 열기
-    window.addEventListener("DOMContentLoaded", () => {
-      const admin = document.getElementById("adminDashboard");
-      if (admin) {
-        admin.style.display = "block";
-      }
-    });
-  }
+if (pw !== "ghkstmdzmffls8904!") {
+  alert("접근 불가");
+  location.href = "index.html";
+} else {
+  window.addEventListener("DOMContentLoaded", () => {
+    openAdminDashboard();
+  });
+}
+
+function openAdminDashboard() {
+  const admin = document.getElementById("adminDashboard");
+  if (!admin) return;
+
+  admin.style.display = "block";
+
+  // 🔥🔥🔥 이 4줄이 생명
+  loadAdminStats();
+  loadOrders();
+  loadCustomers();
+  loadAdminReviews();
+}
 </script>
-
 <body>
 <!-- ===============================
      관리자 대시보드 (숨김)
