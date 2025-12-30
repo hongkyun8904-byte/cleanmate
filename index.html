@@ -702,7 +702,27 @@ const supabaseClient = supabase.createClient(
   SUPABASE_KEY
 );
 </script>
- 
+ <script>
+function showMainSection(type){
+  document.getElementById("estimate-section").style.display = "none";
+  document.getElementById("review-section").style.display = "none";
+  document.getElementById("gallery-section").style.display = "none";
+
+  if(type === "estimate"){
+    document.getElementById("estimate-section").style.display = "block";
+  }
+  if(type === "review"){
+    document.getElementById("review-section").style.display = "block";
+  }
+  if(type === "gallery"){
+    document.getElementById("gallery-section").style.display = "block";
+  }
+}
+
+function goMyPage(){
+  alert("마이페이지 아직 연결 안 됨 (정상)");
+}
+</script>
 </head>
 <body>
 <div class="page">
@@ -1280,6 +1300,7 @@ document.getElementById("sideClean").addEventListener("change", function () {
 </div>
 </body>
 </html>
+
 
 
 
