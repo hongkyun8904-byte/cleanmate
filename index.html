@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <script>
-  if (!sessionStorage.getItem("introDone")) {
-    location.replace("intro.html");
-  }
+ <script>
+sessionStorage.setItem("introDone","1");
+if (!sessionStorage.getItem("introDone")) {
+  location.replace("intro.html");
+}
 </script>
   <meta charset="UTF-8" />
   <title>CleanMate – 청소 견적부터 예약까지, 한 번에</title>
@@ -690,6 +691,8 @@
 .review-btn:hover{
   background:#e3f2fd;
 }  
+</style>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
 const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
@@ -699,6 +702,7 @@ const supabaseClient = supabase.createClient(
   SUPABASE_KEY
 );
 </script>
+ 
 </head>
 <body>
 <div class="page">
@@ -1276,6 +1280,7 @@ document.getElementById("sideClean").addEventListener("change", function () {
 </div>
 </body>
 </html>
+
 
 
 
