@@ -553,6 +553,29 @@ function checkAdminReviewPhotos(){
 /* ===============================
    관리자 대시보드 제어
    =============================== */
+    async function createCompany() {
+  const name = document.getElementById("newCompanyName").value.trim();
+  const isActive = document.getElementById("newCompanyActive").checked;
+
+  if (!name) {
+    alert("업체명을 입력하세요");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("companies")
+    .insert([{ company_name: name, is_active: isActive }]);
+
+  if (error) {
+    console.error(error);
+    alert("업체 생성 실패");
+    return;
+  }
+
+  alert("업체 생성 완료");
+  document.getElementById("newCompanyName").value = "";
+  loadCompanies();
+}
 
 function closeAdminDashboard() {
   document.getElementById("adminDashboard").style.display = "none";
@@ -968,29 +991,7 @@ if (tab === "orders") {
   loadCompanies();
   return;
 }
-  async function createCompany() {
-  const name = document.getElementById("newCompanyName").value.trim();
-  const isActive = document.getElementById("newCompanyActive").checked;
 
-  if (!name) {
-    alert("업체명을 입력하세요");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("companies")
-    .insert([{ company_name: name, is_active: isActive }]);
-
-  if (error) {
-    console.error(error);
-    alert("업체 생성 실패");
-    return;
-  }
-
-  alert("업체 생성 완료");
-  document.getElementById("newCompanyName").value = "";
-  loadCompanies();
-}
   async function loadCompanies() {
   const { data, error } = await supabaseClient
     .from("companies")
