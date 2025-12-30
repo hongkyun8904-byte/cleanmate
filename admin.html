@@ -131,6 +131,7 @@ function openAdminDashboard() {
 <script>
 const ORDER_STEPS = [
   "접수됨",
+  "입금확인",
   "배정완료",
   "반려됨"
 ];
@@ -673,27 +674,20 @@ const specialCount = "-";
   async function updateOrderStatus(orderId, newStatus) {
   let updateData = {};
 
-  if (newStatus === "입금확인") {
+ async function updateOrderStatus(orderId, newStatus) {
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({ status: newStatus })
+    .eq("id", orderId);
 
-    // 1️⃣ 활성화된 업체 1곳 가져오기
-    const { data: companies, error } = await supabaseClient
-      .from("companies")
-      .select("company_name")
-      .eq("is_active", true)
-      .limit(1);
-
-    if (error || !companies || companies.length === 0) {
-      alert("활성화된 업체가 없습니다");
-      return;
-    }
-
-    // 2️⃣ 첫 번째 업체 배정
-    updateData.status = "배정완료";
-    updateData.assigned_company = companies[0].company_name;
-
-  } else {
-    updateData.status = newStatus;
+  if (error) {
+    alert("상태 변경 실패");
+    console.error(error);
+    return;
   }
+
+  loadOrders();
+}
 
   const { error: updateError } = await supabaseClient
     .from("orders")
@@ -708,7 +702,35 @@ const specialCount = "-";
 
   loadOrders();
 }
+async function assignCompany(orderId) {
+  const { data: companies, error } = await supabaseClient
+    .from("companies")
+    .select("company_name")
+    .eq("is_active", true)
+    .limit(1);
 
+  if (error || !companies || companies.length === 0) {
+    alert("활성화된 업체가 없습니다");
+    return;
+  }
+
+  const { error: updateError } = await supabaseClient
+    .from("orders")
+    .update({
+      status: "배정완료",
+      assigned_company: companies[0].company_name
+    })
+    .eq("id", orderId);
+
+  if (updateError) {
+    alert("업체 배정 실패");
+    console.error(updateError);
+    return;
+  }
+
+  alert(`업체 배정 완료: ${companies[0].company_name}`);
+  loadOrders();
+}
   function renderNextActionButtons(order) {
 
   if (order.status === "반려됨") {
@@ -737,7 +759,13 @@ const specialCount = "-";
       </button>
     `;
   }
-
+if (order.status === "입금확인") {
+  buttons += `
+    <button onclick="assignCompany('${order.id}')">
+      🏢 업체 배정
+    </button>
+  `;
+}
 
   buttons += `
     <button
