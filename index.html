@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ko">
 <head>
  <script>
@@ -723,6 +723,29 @@ function goMyPage(){
   alert("마이페이지 아직 연결 안 됨 (정상)");
 }
 </script>
+ <script>
+function updateCounter(type, delta) {
+  let id = "";
+
+  if (type === "aircon") id = "airconCount";
+  if (type === "washer") id = "washerCount";
+  if (type === "fridge") id = "fridgeCount";
+  if (type === "ward2") id = "ward2Count";
+  if (type === "ward3") id = "ward3Count";
+
+  const el = document.getElementById(id);
+  if (!el) {
+    console.error("카운터 엘리먼트 없음:", id);
+    return;
+  }
+
+  let val = parseInt(el.textContent || "0", 10);
+  val += delta;
+  if (val < 0) val = 0;
+
+  el.textContent = val;
+}
+</script>
 </head>
 <body>
 <div class="page">
@@ -1300,6 +1323,7 @@ document.getElementById("sideClean").addEventListener("change", function () {
 </div>
 </body>
 </html>
+
 
 
 
