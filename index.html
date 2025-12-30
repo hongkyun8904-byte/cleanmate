@@ -785,9 +785,9 @@ function calculateEstimate() {
     // 22평 이하 22만원, 23평 이상 평당 1만원
     let basePrice = 0;
     if (supplyArea <= 0){
-      alert("공급 평수를 입력해주세요."를;
-      return;
-    }
+  alert("공급 평수를 입력해주세요.");
+  return;
+}
     if (supplyArea <= 22) basePrice = 220000;
     else basePrice = supplyArea * 10000;
 
@@ -1163,13 +1163,7 @@ async function submitOrder(){
 <!-- 사이청소 -->
 <div class="checkbox-row" style="margin-top:8px;">
   <input type="checkbox" id="sideClean" />
-  <script>
-document.getElementById("sideClean").addEventListener("change", function () {
-  const box = document.getElementById("sideCleanTimeBox");
-  box.style.display = this.checked ? "block" : "none";
-});
-</script>
-
+  
   <label for="sideClean">사이청소  +50,000원</label>
 </div>
 
@@ -1465,8 +1459,21 @@ document.getElementById("sideClean").addEventListener("change", function () {
     잠시만 기다려주세요.
   </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const sideClean = document.getElementById("sideClean");
+  const box = document.getElementById("sideCleanTimeBox");
+
+  if (sideClean && box) {
+    sideClean.addEventListener("change", function () {
+      box.style.display = this.checked ? "block" : "none";
+    });
+  }
+});
+</script>
 </body>
 </html>
+
 
 
 
