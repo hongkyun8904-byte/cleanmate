@@ -785,7 +785,7 @@ function calculateEstimate() {
     // 22평 이하 22만원, 23평 이상 평당 1만원
     let basePrice = 0;
     if (supplyArea <= 0){
-      alert("공급 평수를 입력해줘.");
+      alert("공급 평수를 입력해주세요."를;
       return;
     }
     if (supplyArea <= 22) basePrice = 220000;
@@ -871,7 +871,10 @@ async function submitOrder(){
 
     structure: document.getElementById("structure").value,
     supply_area: Number(document.getElementById("supplyArea").value),
-    total_price: document.getElementById("totalPriceText").innerText,
+   total_price: Number(
+  document.getElementById("totalPriceText")
+    .innerText.replace(/[^0-9]/g, "")
+),
 
     status: "접수됨",
     assigned_company: null,
@@ -1464,6 +1467,7 @@ document.getElementById("sideClean").addEventListener("change", function () {
 </div>
 </body>
 </html>
+
 
 
 
