@@ -746,19 +746,7 @@ function updateCounter(type, delta) {
   el.textContent = val;
 }
 </script>
- <script>
-function calculateEstimate() {
-  alert("calculateEstimate 아직 미구현 (정상)");
-}
 
-function updateApplyButtonText() {
-  // 아직 미구현
-}
-
-function sendToKakao() {
-  alert("카카오 연결 아직 미구현 (정상)");
-}
-</script>
  <script>
 function formatWon(n){
   return (n||0).toLocaleString("ko-KR") + "원";
@@ -1145,11 +1133,7 @@ document.getElementById("sideClean").addEventListener("change", function () {
 
 <!-- 특수청소 -->
 <div class="checkbox-row" style="margin-top:4px;">
-  <input
-    type="checkbox"
-    id="specialClean"
-    onchange="updateApplyButtonText()"
-  />
+<input type="checkbox" id="specialClean" />
   <label for="specialClean">
     특수청소 (가격 별도 · 상담 필요)
   </label>
@@ -1441,6 +1425,7 @@ document.getElementById("sideClean").addEventListener("change", function () {
 </div>
 </body>
 </html>
+
 
 
 
