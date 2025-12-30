@@ -1,8 +1,7 @@
  <!DOCTYPE html>
 <html lang="ko">
 <head>
- <script>
-sessionStorage.setItem("introDone","1");
+<script>
 if (!sessionStorage.getItem("introDone")) {
   location.replace("intro.html");
 }
@@ -875,7 +874,7 @@ async function submitOrder(){
     total_price: document.getElementById("totalPriceText").innerText,
 
     status: "접수됨",
-    assigned_team: null,
+    assigned_company: null,
     created_at: new Date().toISOString()
   };
 
@@ -889,7 +888,7 @@ async function submitOrder(){
     return;
   }
 
-  location.href = "/admin.html";
+  document.getElementById("matchingLoading").style.display = "flex";
 }
 </script> 
 </head>
@@ -1465,6 +1464,7 @@ document.getElementById("sideClean").addEventListener("change", function () {
 </div>
 </body>
 </html>
+
 
 
 
