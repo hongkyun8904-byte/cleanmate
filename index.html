@@ -852,6 +852,46 @@ function calculateEstimate() {
 }
 </script>
 
+<script>
+async function submitOrder(){
+
+  const name = document.getElementById("custName").value.trim();
+  const phone = document.getElementById("custPhone").value.trim();
+  const address = document.getElementById("custAddr").value.trim();
+
+  if(!name || !phone || !address){
+    alert("이름 / 연락처 / 주소는 필수야");
+    return;
+  }
+
+  const orderData = {
+    name: name,
+    phone: phone,
+    address: address,
+    memo: document.getElementById("custMemo").value,
+
+    structure: document.getElementById("structure").value,
+    supply_area: Number(document.getElementById("supplyArea").value),
+    total_price: document.getElementById("totalPriceText").innerText,
+
+    status: "접수됨",
+    assigned_team: null,
+    created_at: new Date().toISOString()
+  };
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .insert([orderData]);
+
+  if(error){
+    console.error(error);
+    alert("예약 저장 실패 (F12 콘솔 확인)");
+    return;
+  }
+
+  location.href = "/admin.html";
+}
+</script> 
 </head>
 <body>
 <div class="page">
@@ -1278,7 +1318,7 @@ document.getElementById("sideClean").addEventListener("change", function () {
                 <input type="text" id="custMemo" placeholder="예: 입주청소 / 반려동물 있음 / 시간대 요청 등" />
               </div>
 
-           <button id="applyBtn" class="primary-btn" type="button" onclick="sendToKakao()">
+          <button id="applyBtn" class="primary-btn" type="button" onclick="submitOrder()">
   우수업체에게 자동 신청하기
 </button>
 
@@ -1425,6 +1465,7 @@ document.getElementById("sideClean").addEventListener("change", function () {
 </div>
 </body>
 </html>
+
 
 
 
