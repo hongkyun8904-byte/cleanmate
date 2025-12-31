@@ -406,10 +406,18 @@ if (originalName.length === 2) {
 }
   
 </script>
+// ✅ URL에 phone 있으면 자동 조회
+const params = new URLSearchParams(window.location.search);
+const phoneFromUrl = params.get("phone");
 
+if (phoneFromUrl) {
+  document.getElementById("phoneInput").value = phoneFromUrl;
+  loadMyOrder(); // 🔥 자동 조회
+}
 </body>
 
 </html>
+
 
 
 
