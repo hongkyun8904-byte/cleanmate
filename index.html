@@ -1296,7 +1296,7 @@ if (photoInput) {
     tbody.innerHTML = "";
 
     let scores = [];
-    let photoExtraTotal = 0;
+  
 
     files.forEach((file) => {
       // 🔥 MVP용 가짜 오염도 점수 (40~100)
@@ -1337,89 +1337,21 @@ if (photoInput) {
     document.getElementById("photoExtraCell").innerText =
       photoExtraTotal.toLocaleString() + "원";
 
-    // 총 견적에 반영
-    const totalEl = document.getElementById("totalPriceText");
-    const basePrice = Number(totalEl.innerText.replace(/[^0-9]/g, ""));
-    totalEl.innerText = (basePrice + photoExtraTotal).toLocaleString() + "원";
-
-    // 신청 영역 열기
+     // 신청 영역 열기
     document.getElementById("requestBox").style.display = "block";
   });
 }
 </script>
- <script>
+
+
+<script>
 /* =========================
-   [실전] 견적 계산 + 신청
+   ✅ 최종 견적 / 카운터 / 신청 통합본
 ========================= */
 
-function calculateEstimate() {
-  const supply = Number(document.getElementById("supplyArea").value);
-  if (!supply) {
-    alert("공급 평수를 입력하세요");
-    return;
-  }
+let photoExtraTotal = 0;
 
-  let base = supply <= 22 ? 220000 : supply * 10000;
-
-  document.getElementById("basePriceCell").innerText = base.toLocaleString() + "원";
-  document.getElementById("totalPriceText").innerText = base.toLocaleString() + "원";
-
-  document.getElementById("requestBox").style.display = "block";
-}
-
-async function submitOrder() {
-  const name = document.getElementById("custName").value.trim();
-  const phone = document.getElementById("custPhone").value.trim();
-  const addr = document.getElementById("custAddr").value.trim();
-
-  if (!name || !phone || !addr) {
-    alert("이름 / 연락처 / 주소는 필수입니다");
-    return;
-  }
-
-  const totalPrice = Number(
-    document.getElementById("totalPriceText").innerText.replace(/[^0-9]/g, "")
-  );
-
-  const { error } = await supabaseClient
-    .from("orders")
-    .insert([{
-      name: name,
-      phone: phone,
-      address: addr,
-      structure: document.getElementById("structure").value,
-      supply_area: Number(document.getElementById("supplyArea").value),
-      total_price: totalPrice,
-      status: "접수됨"
-    }]);
-
-  if (error) {
-    console.error(error);
-    alert("예약 저장 실패 (콘솔 확인)");
-    return;
-  }
-
-  document.getElementById("matchingLoading").style.display = "flex";
-}
-</script>
- <script>
-/* =========================
-   임시 필수 함수 (에러 방지용)
-   👉 투자 데모용
-========================= */
-
-function goMyPage() {
-  alert("마이페이지는 준비 중입니다 (투자 데모용)");
-}
-
-function showMainSection(section) {
-  document.getElementById("estimate-section").style.display = "none";
-  document.getElementById("review-section").style.display = "none";
-  document.getElementById("gallery-section").style.display = "none";
-
-  document.getElementById(section + "-section").style.display = "block";
-}
-
+/* 카운터 상태 */
 const counters = {
   aircon: 0,
   washer: 0,
@@ -1428,33 +1360,14 @@ const counters = {
   ward3: 0
 };
 
+/* +/- 버튼 */
 function updateCounter(type, diff) {
   counters[type] = Math.max(0, counters[type] + diff);
   document.getElementById(type + "Count").innerText = counters[type];
-}
-</script>
- <script>
-/* =========================
-   [FIX] 카운터 + 견적 계산 최종본
-========================= */
-
-/* ✅ 카운터 상태 */
-const counters = {
-  aircon: 0,
-  washer: 0,
-  fridge: 0,
-  ward2: 0,
-  ward3: 0
-};
-
-/* ✅ +/- 버튼 */
-function updateCounter(type, diff) {
-  counters[type] = Math.max(0, counters[type] + diff);
-  document.getElementById(type + "Count").innerText = counters[type];
-  calculateEstimate(); // 변경 시 자동 재계산
+  calculateEstimate();
 }
 
-/* ✅ 견적 계산 */
+/* 견적 계산 */
 function calculateEstimate() {
   const supply = Number(document.getElementById("supplyArea").value);
   if (!supply) {
@@ -1465,7 +1378,7 @@ function calculateEstimate() {
   /* 1️⃣ 기본가 */
   let base = supply <= 22 ? 220000 : supply * 10000;
 
-  /* 2️⃣ 옵션 추가금 */
+  /* 2️⃣ 옵션 */
   let optionTotal = 0;
 
   optionTotal += counters.aircon * 20000;
@@ -1474,24 +1387,72 @@ function calculateEstimate() {
   optionTotal += counters.ward2 * 50000;
   optionTotal += counters.ward3 * 70000;
 
-  if (document.getElementById("largeFridge").checked) optionTotal += 10000;
-  if (document.getElementById("isLiveIn").checked) optionTotal += 50000;
-  if (document.getElementById("sideClean").checked) optionTotal += 50000;
-  if (document.getElementById("kitchenDeep").checked) optionTotal += 70000;
+  if (largeFridge.checked) optionTotal += 10000;
+  if (isLiveIn.checked) optionTotal += 50000;
+  if (sideClean.checked) optionTotal += 50000;
+  if (kitchenDeep.checked) optionTotal += 70000;
 
-  /* 3️⃣ 합계 */
-  const total = base + optionTotal;
+  /* 비확장 */
+  if (isUnexpanded.checked) {
+    optionTotal += 50000;
+    unexpCell.innerText = "50,000원";
+  } else {
+    unexpCell.innerText = "-";
+  }
 
-  /* 4️⃣ 화면 반영 */
-  document.getElementById("basePriceCell").innerText = base.toLocaleString() + "원";
-  document.getElementById("optionsCell").innerText = optionTotal.toLocaleString() + "원";
-  document.getElementById("totalPriceText").innerText = total.toLocaleString() + "원";
+  /* 복층 */
+  const loft = Number(loftArea.value || 0);
+  const loftPrice = loft * 5000;
+  optionTotal += loftPrice;
+  loftCell.innerText = loft > 0 ? loftPrice.toLocaleString() + "원" : "-";
 
-  document.getElementById("requestBox").style.display = "block";
+  /* 3️⃣ 최종 합계 */
+  const total = base + optionTotal + photoExtraTotal;
+
+  basePriceCell.innerText = base.toLocaleString() + "원";
+  optionsCell.innerText = optionTotal.toLocaleString() + "원";
+  totalPriceText.innerText = total.toLocaleString() + "원";
+
+  requestBox.style.display = "block";
+}
+
+/* 신청 */
+async function submitOrder() {
+  const name = custName.value.trim();
+  const phone = custPhone.value.trim();
+
+  if (!name || !phone) {
+    alert("이름과 연락처를 입력하세요");
+    return;
+  }
+
+  const totalPrice = Number(
+    totalPriceText.innerText.replace(/[^0-9]/g, "")
+  );
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .insert([{
+      name,
+      phone,
+      structure: structure.value,
+      supply_area: Number(supplyArea.value),
+      total_price: totalPrice,
+      status: "접수됨"
+    }]);
+
+  if (error) {
+    console.error(error);
+    alert("예약 저장 실패");
+    return;
+  }
+
+  matchingLoading.style.display = "flex";
 }
 </script>
 </body>
 </html>
+
 
 
 
