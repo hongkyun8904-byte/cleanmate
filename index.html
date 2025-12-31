@@ -1347,8 +1347,95 @@ if (photoInput) {
   });
 }
 </script>
+ <script>
+/* =========================
+   [실전] 견적 계산 + 신청
+========================= */
+
+function calculateEstimate() {
+  const supply = Number(document.getElementById("supplyArea").value);
+  if (!supply) {
+    alert("공급 평수를 입력하세요");
+    return;
+  }
+
+  let base = supply <= 22 ? 220000 : supply * 10000;
+
+  document.getElementById("basePriceCell").innerText = base.toLocaleString() + "원";
+  document.getElementById("totalPriceText").innerText = base.toLocaleString() + "원";
+
+  document.getElementById("requestBox").style.display = "block";
+}
+
+async function submitOrder() {
+  const name = document.getElementById("custName").value.trim();
+  const phone = document.getElementById("custPhone").value.trim();
+  const addr = document.getElementById("custAddr").value.trim();
+
+  if (!name || !phone || !addr) {
+    alert("이름 / 연락처 / 주소는 필수입니다");
+    return;
+  }
+
+  const totalPrice = Number(
+    document.getElementById("totalPriceText").innerText.replace(/[^0-9]/g, "")
+  );
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .insert([{
+      name: name,
+      phone: phone,
+      address: addr,
+      structure: document.getElementById("structure").value,
+      supply_area: Number(document.getElementById("supplyArea").value),
+      total_price: totalPrice,
+      status: "접수됨"
+    }]);
+
+  if (error) {
+    console.error(error);
+    alert("예약 저장 실패 (콘솔 확인)");
+    return;
+  }
+
+  document.getElementById("matchingLoading").style.display = "flex";
+}
+</script>
+ <script>
+/* =========================
+   임시 필수 함수 (에러 방지용)
+   👉 투자 데모용
+========================= */
+
+function goMyPage() {
+  alert("마이페이지는 준비 중입니다 (투자 데모용)");
+}
+
+function showMainSection(section) {
+  document.getElementById("estimate-section").style.display = "none";
+  document.getElementById("review-section").style.display = "none";
+  document.getElementById("gallery-section").style.display = "none";
+
+  document.getElementById(section + "-section").style.display = "block";
+}
+
+const counters = {
+  aircon: 0,
+  washer: 0,
+  fridge: 0,
+  ward2: 0,
+  ward3: 0
+};
+
+function updateCounter(type, diff) {
+  counters[type] = Math.max(0, counters[type] + diff);
+  document.getElementById(type + "Count").innerText = counters[type];
+}
+</script>
 </body>
 </html>
+
 
 
 
