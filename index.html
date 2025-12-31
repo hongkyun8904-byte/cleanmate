@@ -1494,8 +1494,34 @@ document.addEventListener("DOMContentLoaded", function(){
   showMainSection("estimate");
 });
 </script>
+ <script>
+/* =========================
+   🔒 강제 전역 초기화 (에러 차단용)
+========================= */
+if (typeof photoExtraTotal === "undefined") {
+  var photoExtraTotal = 0;
+}
+
+/* =========================
+   🔧 calculateEstimate 보완
+========================= */
+(function(){
+  const _calc = window.calculateEstimate;
+
+  window.calculateEstimate = function(){
+    // 🔒 DOM 강제 확보
+    const specialClean = document.getElementById("specialClean");
+    if (!specialClean) {
+      console.warn("specialClean 없음 — 계산 제외");
+    }
+
+    return _calc();
+  };
+})();
+</script>
 </body>
 </html>
+
 
 
 
