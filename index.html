@@ -701,137 +701,8 @@ const supabaseClient = supabase.createClient(
   SUPABASE_KEY
 );
 </script>
- <script>
-function showMainSection(type){
-  document.getElementById("estimate-section").style.display = "none";
-  document.getElementById("review-section").style.display = "none";
-  document.getElementById("gallery-section").style.display = "none";
 
-  if(type === "estimate"){
-    document.getElementById("estimate-section").style.display = "block";
-  }
-  if(type === "review"){
-    document.getElementById("review-section").style.display = "block";
-  }
-  if(type === "gallery"){
-    document.getElementById("gallery-section").style.display = "block";
-  }
-}
 
-function goMyPage(){
-  alert("마이페이지 아직 연결 안 됨 (정상)");
-}
-</script>
- <script>
-function updateCounter(type, delta) {
-  let id = "";
-
-  if (type === "aircon") id = "airconCount";
-  if (type === "washer") id = "washerCount";
-  if (type === "fridge") id = "fridgeCount";
-  if (type === "ward2") id = "ward2Count";
-  if (type === "ward3") id = "ward3Count";
-
-  const el = document.getElementById(id);
-  if (!el) {
-    console.error("카운터 엘리먼트 없음:", id);
-    return;
-  }
-
-  let val = parseInt(el.textContent || "0", 10);
-  val += delta;
-  if (val < 0) val = 0;
-
-  el.textContent = val;
-}
-</script>
-
- <script>
-function formatWon(n){
-  return (n||0).toLocaleString("ko-KR") + "원";
-}
-
-function getCheckedTime(){
-  const r = document.querySelector('input[name="cleanTime"]:checked');
-  return r ? r.value : "";
-}
-
-function calculateEstimate() {
-  try {
-    const supplyArea = Number(document.getElementById("supplyArea").value);
-
-    if (!supplyArea || supplyArea <= 0) {
-      alert("공급 평수를 입력해주세요.");
-      return;
-    }
-
-    let basePrice = supplyArea <= 22 ? 220000 : supplyArea * 10000;
-
-    document.getElementById("totalPriceText").innerText =
-      basePrice.toLocaleString("ko-KR") + "원";
-
-    document.getElementById("basePriceCell").innerText =
-      basePrice.toLocaleString("ko-KR") + "원";
-
-    document.getElementById("unexpCell").innerText = "0원";
-    document.getElementById("loftCell").innerText = "0원";
-    document.getElementById("optionsCell").innerText = "0원";
-    document.getElementById("photoExtraCell").innerText = "0원";
-
-    document.getElementById("requestBox").style.display = "block";
-
-    console.log("견적 계산 성공", basePrice);
-  } catch (e) {
-    console.error(e);
-    alert("견적 계산 오류 – 콘솔 확인");
-  }
-}
-
-</script>
-
-<script>
-async function submitOrder(){
-
-  const name = document.getElementById("custName").value.trim();
-  const phone = document.getElementById("custPhone").value.trim();
-  const address = document.getElementById("custAddr").value.trim();
-
-  if(!name || !phone || !address){
-    alert("이름 / 연락처 / 주소는 필수야");
-    return;
-  }
-
-  const orderData = {
-    name: name,
-    phone: phone,
-    address: address,
-    memo: document.getElementById("custMemo").value,
-
-    structure: document.getElementById("structure").value,
-    supply_area: Number(document.getElementById("supplyArea").value),
-   total_price: Number(
-  document.getElementById("totalPriceText")
-    .innerText.replace(/[^0-9]/g, "")
-),
-
-    status: "접수됨",
-    assigned_company: null,
-    created_at: new Date().toISOString()
-  };
-
-  const { error } = await supabaseClient
-    .from("orders")
-    .insert([orderData]);
-
-  if(error){
-    console.error(error);
-    alert("예약 저장 실패 (F12 콘솔 확인)");
-    return;
-  }
-
-  document.getElementById("matchingLoading").style.display = "flex";
-}
-</script> 
 </head>
 <body>
 <div class="page">
@@ -1409,8 +1280,76 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 </script>
+ <script>
+/* =========================
+   사진 오염도 분석 (MVP 실전용)
+========================= */
+
+const photoInput = document.getElementById("photoInput");
+
+if (photoInput) {
+  photoInput.addEventListener("change", function (e) {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    const tbody = document.querySelector("#photoDetailTable tbody");
+    tbody.innerHTML = "";
+
+    let scores = [];
+    let photoExtraTotal = 0;
+
+    files.forEach((file) => {
+      // 🔥 MVP용 가짜 오염도 점수 (40~100)
+      const score = Math.floor(Math.random() * 61) + 40;
+      scores.push(score);
+
+      let extra = 0;
+      let level = "일반";
+
+      if (score >= 51 && score <= 70) {
+        extra = 30000;
+        photoExtraTotal += 30000;
+      } else if (score >= 71 && score <= 85) {
+        extra = 70000;
+        photoExtraTotal += 70000;
+      } else if (score >= 86) {
+        extra = "상담";
+        level = "고난이도";
+        document.getElementById("specialNotice").style.display = "block";
+      }
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${file.name}</td>
+        <td>${score}점</td>
+        <td>${level}</td>
+        <td>${typeof extra === "number" ? extra.toLocaleString()+"원" : extra}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+    const max = Math.max(...scores);
+
+    document.getElementById("photoCountText").innerText = files.length + "장";
+    document.getElementById("avgScoreText").innerText = avg;
+    document.getElementById("maxScoreText").innerText = max;
+    document.getElementById("photoExtraCell").innerText =
+      photoExtraTotal.toLocaleString() + "원";
+
+    // 총 견적에 반영
+    const totalEl = document.getElementById("totalPriceText");
+    const basePrice = Number(totalEl.innerText.replace(/[^0-9]/g, ""));
+    totalEl.innerText = (basePrice + photoExtraTotal).toLocaleString() + "원";
+
+    // 신청 영역 열기
+    document.getElementById("requestBox").style.display = "block";
+  });
+}
+</script>
 </body>
 </html>
+
 
 
 
