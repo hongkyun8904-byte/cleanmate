@@ -757,35 +757,35 @@ function getCheckedTime(){
 }
 
 function calculateEstimate() {
-  try{
-    // ====== 입력값 ======
-    const structure = document.getElementById("structure")?.value || "";
-    const supplyArea = parseFloat(document.getElementById("supplyArea")?.value || "0") || 0;
+  try {
+    const supplyArea = Number(document.getElementById("supplyArea").value);
 
-    const isUnexpanded = document.getElementById("isUnexpanded")?.checked || false;
-    const loftArea = parseFloat(document.getElementById("loftArea")?.value || "0") || 0;
+    if (!supplyArea || supplyArea <= 0) {
+      alert("공급 평수를 입력해주세요.");
+      return;
+    }
 
-    const isLiveIn = document.getElementById("isLiveIn")?.checked || false;
-    const sideClean = document.getElementById("sideClean")?.checked || false;
-    const kitchenDeep = document.getElementById("kitchenDeep")?.checked || false;
+    let basePrice = supplyArea <= 22 ? 220000 : supplyArea * 10000;
 
-    const largeFridge = document.getElementById("largeFridge")?.checked || false;
+    document.getElementById("totalPriceText").innerText =
+      basePrice.toLocaleString("ko-KR") + "원";
 
-    const aircon = parseInt(document.getElementById("airconCount")?.textContent || "0", 10) || 0;
-    const washer = parseInt(document.getElementById("washerCount")?.textContent || "0", 10) || 0;
-    const fridge = parseInt(document.getElementById("fridgeCount")?.textContent || "0", 10) || 0;
-    const ward2  = parseInt(document.getElementById("ward2Count")?.textContent  || "0", 10) || 0;
-    const ward3  = parseInt(document.getElementById("ward3Count")?.textContent  || "0", 10) || 0;
+    document.getElementById("basePriceCell").innerText =
+      basePrice.toLocaleString("ko-KR") + "원";
 
-    // 날짜/시간 (표시는 안 해도 값은 읽어둠)
-    const cleanDate = document.getElementById("cleanDate")?.value || "";
-    const cleanTime = getCheckedTime();
+    document.getElementById("unexpCell").innerText = "0원";
+    document.getElementById("loftCell").innerText = "0원";
+    document.getElementById("optionsCell").innerText = "0원";
+    document.getElementById("photoExtraCell").innerText = "0원";
 
-    // ====== 기본가 계산(너 문구 기준) ======
-    // 22평 이하 22만원, 23평 이상 평당 1만원
-    let basePrice = 0;
-    if (supplyArea <= 0){
-  alert("공급 평수를 입력해주세요.");
+    document.getElementById("requestBox").style.display = "block";
+
+    console.log("견적 계산 성공", basePrice);
+  } catch (e) {
+    console.error(e);
+    alert("견적 계산 오류 – 콘솔 확인");
+  }
+}
   return;
 }
     if (supplyArea <= 22) basePrice = 220000;
@@ -1473,6 +1473,7 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 </body>
 </html>
+
 
 
 
