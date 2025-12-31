@@ -1433,8 +1433,66 @@ function updateCounter(type, diff) {
   document.getElementById(type + "Count").innerText = counters[type];
 }
 </script>
+ <script>
+/* =========================
+   [FIX] 카운터 + 견적 계산 최종본
+========================= */
+
+/* ✅ 카운터 상태 */
+const counters = {
+  aircon: 0,
+  washer: 0,
+  fridge: 0,
+  ward2: 0,
+  ward3: 0
+};
+
+/* ✅ +/- 버튼 */
+function updateCounter(type, diff) {
+  counters[type] = Math.max(0, counters[type] + diff);
+  document.getElementById(type + "Count").innerText = counters[type];
+  calculateEstimate(); // 변경 시 자동 재계산
+}
+
+/* ✅ 견적 계산 */
+function calculateEstimate() {
+  const supply = Number(document.getElementById("supplyArea").value);
+  if (!supply) {
+    alert("공급 평수를 입력하세요");
+    return;
+  }
+
+  /* 1️⃣ 기본가 */
+  let base = supply <= 22 ? 220000 : supply * 10000;
+
+  /* 2️⃣ 옵션 추가금 */
+  let optionTotal = 0;
+
+  optionTotal += counters.aircon * 20000;
+  optionTotal += counters.washer * 20000;
+  optionTotal += counters.fridge * 20000;
+  optionTotal += counters.ward2 * 50000;
+  optionTotal += counters.ward3 * 70000;
+
+  if (document.getElementById("largeFridge").checked) optionTotal += 10000;
+  if (document.getElementById("isLiveIn").checked) optionTotal += 50000;
+  if (document.getElementById("sideClean").checked) optionTotal += 50000;
+  if (document.getElementById("kitchenDeep").checked) optionTotal += 70000;
+
+  /* 3️⃣ 합계 */
+  const total = base + optionTotal;
+
+  /* 4️⃣ 화면 반영 */
+  document.getElementById("basePriceCell").innerText = base.toLocaleString() + "원";
+  document.getElementById("optionsCell").innerText = optionTotal.toLocaleString() + "원";
+  document.getElementById("totalPriceText").innerText = total.toLocaleString() + "원";
+
+  document.getElementById("requestBox").style.display = "block";
+}
+</script>
 </body>
 </html>
+
 
 
 
