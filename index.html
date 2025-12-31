@@ -702,7 +702,12 @@ const supabaseClient = supabase.createClient(
 );
 </script>
 
-
+<script>
+/* =========================
+   ✅ 전역 상태 변수 (중요)
+========================= */
+let photoExtraTotal = 0;
+</script>
 </head>
 <body>
 <div class="page">
@@ -1246,6 +1251,7 @@ const supabaseClient = supabase.createClient(
 
 
 <!-- 매칭 로딩 화면 -->
+
 <div id="matchingLoading" style="
   display:none;
   position:fixed;
@@ -1288,9 +1294,14 @@ document.addEventListener("DOMContentLoaded", function () {
 const photoInput = document.getElementById("photoInput");
 
 if (photoInput) {
-  photoInput.addEventListener("change", function (e) {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
+photoInput.addEventListener("change", function (e) {
+
+  // ✅ 사진 다시 선택할 때마다 초기화 (중요)
+  photoExtraTotal = 0;
+  document.getElementById("specialNotice").style.display = "none";
+
+  const files = Array.from(e.target.files);
+  if (files.length === 0) return;
 
     const tbody = document.querySelector("#photoDetailTable tbody");
     tbody.innerHTML = "";
@@ -1367,47 +1378,62 @@ function updateCounter(type, diff) {
 
 /* 견적 계산 */
 function calculateEstimate() {
-  const supply = Number(document.getElementById("supplyArea").value);
-  if (!supply) {
+
+  /* 🔒 DOM 요소를 함수 안에서 직접 잡아 안정화 */
+  const largeFridge = document.getElementById("largeFridge");
+  const isLiveIn = document.getElementById("isLiveIn");
+  const sideClean = document.getElementById("sideClean");
+  const kitchenDeep = document.getElementById("kitchenDeep");
+  const isUnexpanded = document.getElementById("isUnexpanded");
+
+  const unexpCell = document.getElementById("unexpCell");
+  const loftCell = document.getElementById("loftCell");
+  const basePriceCell = document.getElementById("basePriceCell");
+  const optionsCell = document.getElementById("optionsCell");
+  const totalPriceText = document.getElementById("totalPriceText");
+  const requestBox = document.getElementById("requestBox");
+
+  const supplyArea = document.getElementById("supplyArea");
+  const loftArea = document.getElementById("loftArea");
+
+  const supply = Number(supplyArea.value);
+  if (!supply || supply <= 0) {
     alert("공급 평수를 입력하세요");
     return;
   }
 
-  /* 1️⃣ 기본가 */
-  let base = supply <= 22 ? 220000 : supply * 10000;
+  /* 기본가 */
+  let basePrice = supply <= 22 ? 220000 : supply * 10000;
 
-  /* 2️⃣ 옵션 */
+  /* 옵션 */
   let optionTotal = 0;
-
   optionTotal += counters.aircon * 20000;
   optionTotal += counters.washer * 20000;
   optionTotal += counters.fridge * 20000;
   optionTotal += counters.ward2 * 50000;
   optionTotal += counters.ward3 * 70000;
 
-  if (largeFridge.checked) optionTotal += 10000;
-  if (isLiveIn.checked) optionTotal += 50000;
-  if (sideClean.checked) optionTotal += 50000;
-  if (kitchenDeep.checked) optionTotal += 70000;
+  if (largeFridge?.checked) optionTotal += 10000;
+  if (isLiveIn?.checked) optionTotal += 50000;
+  if (sideClean?.checked) optionTotal += 50000;
+  if (kitchenDeep?.checked) optionTotal += 70000;
+ if (specialClean?.checked) optionTotal += 100000;
 
-  /* 비확장 */
-  if (isUnexpanded.checked) {
+  if (isUnexpanded?.checked) {
     optionTotal += 50000;
     unexpCell.innerText = "50,000원";
   } else {
     unexpCell.innerText = "-";
   }
 
-  /* 복층 */
   const loft = Number(loftArea.value || 0);
   const loftPrice = loft * 5000;
   optionTotal += loftPrice;
   loftCell.innerText = loft > 0 ? loftPrice.toLocaleString() + "원" : "-";
 
-  /* 3️⃣ 최종 합계 */
-  const total = base + optionTotal + photoExtraTotal;
+  const total = basePrice + optionTotal + (photoExtraTotal || 0);
 
-  basePriceCell.innerText = base.toLocaleString() + "원";
+  basePriceCell.innerText = basePrice.toLocaleString() + "원";
   optionsCell.innerText = optionTotal.toLocaleString() + "원";
   totalPriceText.innerText = total.toLocaleString() + "원";
 
@@ -1448,8 +1474,29 @@ async function submitOrder() {
   matchingLoading.style.display = "flex";
 }
 </script>
+ <script>
+function goMyPage(){
+  location.href = "mypage.html";
+}
+</script>
+ <script>
+function showMainSection(type){
+  document.getElementById("estimate-section").style.display =
+    type === "estimate" ? "block" : "none";
+  document.getElementById("review-section").style.display =
+    type === "review" ? "block" : "none";
+  document.getElementById("gallery-section").style.display =
+    type === "gallery" ? "block" : "none";
+}
+
+/* 처음 페이지 열리면 견적 탭만 보이게 */
+document.addEventListener("DOMContentLoaded", function(){
+  showMainSection("estimate");
+});
+</script>
 </body>
 </html>
+
 
 
 
