@@ -1349,8 +1349,6 @@ if (photoInput) {
    ✅ 최종 견적 / 카운터 / 신청 통합본
 ========================= */
 
-let photoExtraTotal = 0;
-
 /* 카운터 상태 */
 const counters = {
   aircon: 0,
@@ -1430,16 +1428,16 @@ async function submitOrder() {
     totalPriceText.innerText.replace(/[^0-9]/g, "")
   );
 
-  const { error } = await supabaseClient
-    .from("orders")
-    .insert([{
-      name,
-      phone,
-      structure: structure.value,
-      supply_area: Number(supplyArea.value),
-      total_price: totalPrice,
-      status: "접수됨"
-    }]);
+ const { error } = await supabaseClient
+  .from("orders")
+  .insert([{
+    name,
+    phone,
+    structure: structure.value,
+    supply_area: Number(supplyArea.value),
+    estimated_price: totalPrice, // ✅ DB에 있는 컬럼명
+    status: "접수됨"
+  }]);
 
   if (error) {
     console.error(error);
@@ -1452,6 +1450,7 @@ async function submitOrder() {
 </script>
 </body>
 </html>
+
 
 
 
