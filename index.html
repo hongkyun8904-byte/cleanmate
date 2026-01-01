@@ -1248,32 +1248,6 @@ let photoExtraTotal = 0;
   </footer>
 
 </div>
-
-
-<!-- 매칭 로딩 화면 -->
-
-<div id="matchingLoading" style="
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.6);
-  z-index:9999;
-  align-items:center;
-  justify-content:center;
-  color:#fff;
-  font-size:16px;
-  text-align:center;
-">
-  <div style="
-    background:#111;
-    padding:24px 32px;
-    border-radius:12px;
-  ">
-    고객님께 맞는 우수업체를<br>
-    5~10분 이내에 선정 중입니다.<br><br>
-    잠시만 기다려주세요.
-  </div>
-</div>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   const sideClean = document.getElementById("sideClean");
@@ -1498,12 +1472,6 @@ document.addEventListener("DOMContentLoaded", function(){
 });
 </script>
  <script>
-/* =========================
-   🔒 강제 전역 초기화 (에러 차단용)
-========================= */
-if (typeof photoExtraTotal === "undefined") {
-  var photoExtraTotal = 0;
-}
 
 /* =========================
    🔧 calculateEstimate 보완
@@ -1524,6 +1492,7 @@ if (typeof photoExtraTotal === "undefined") {
 </script>
 </body>
 </html>
+
 
 
 
