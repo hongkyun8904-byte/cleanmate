@@ -1441,7 +1441,7 @@ function calculateEstimate() {
 }
 
 /* 신청 */
-async function submitOrder() {
+function submitOrder() {
   const name = custName.value.trim();
   const phone = custPhone.value.trim();
 
@@ -1450,33 +1450,36 @@ async function submitOrder() {
     return;
   }
 
-  const totalPrice = Number(
-    totalPriceText.innerText.replace(/[^0-9]/g, "")
+  const totalPriceNumber = Number(
+    document.getElementById("totalPriceText")
+      .innerText.replace(/[^0-9]/g, "")
   );
 
- const { error } = await supabaseClient
-  .from("orders")
-  .insert([{
+  const payload = {
     name,
     phone,
+    address: custAddr.value.trim(),
+    memo: custMemo.value.trim(),
     structure: structure.value,
     supply_area: Number(supplyArea.value),
-    estimated_price: totalPrice, // ✅ DB에 있는 컬럼명
-    status: "접수됨"
-  }]);
+    total_price_text: totalPriceText.innerText,
+    total_price_number: totalPriceNumber,
+    clean_date: cleanDate.value,
+    clean_time: timeMorning.checked
+      ? timeMorning.value
+      : timeAfternoon.checked
+      ? timeAfternoon.value
+      : null,
+    side_clean_time: sideClean.checked
+      ? `${sideStartTime.value} ~ ${sideEndTime.value}`
+      : null
+  };
 
-  if (error) {
-    console.error(error);
-    alert("예약 저장 실패");
-    return;
-  }
+  // ✅ 핵심: 여기서 DB 저장 ❌
+  localStorage.setItem("cleanmate_payload", JSON.stringify(payload));
 
-  matchingLoading.style.display = "flex";
-}
-</script>
- <script>
-function goMyPage(){
-  location.href = "mypage.html";
+  // ✅ 바로 필수 동의 페이지로 이동
+  location.href = "confirm.html";
 }
 </script>
  <script>
@@ -1521,6 +1524,7 @@ if (typeof photoExtraTotal === "undefined") {
 </script>
 </body>
 </html>
+
 
 
 
