@@ -690,7 +690,7 @@ const specialCount = "-";
 async function assignCompany(orderId) {
   const { data: companies, error } = await supabaseClient
     .from("companies")
-    .select("company_name")
+    .select("name")
     .eq("is_active", true);
 
   if (error || !companies || companies.length === 0) {
@@ -698,7 +698,6 @@ async function assignCompany(orderId) {
     return;
   }
 
-  // 🔥 랜덤 선택
   const selected =
     companies[Math.floor(Math.random() * companies.length)];
 
@@ -706,17 +705,17 @@ async function assignCompany(orderId) {
     .from("orders")
     .update({
       status: "배정완료",
-      assigned_company: selected.company_name
+      assigned_company: selected.name   // ✅ 여기 핵심
     })
     .eq("id", orderId);
 
   if (updateError) {
-    alert("업체 배정 실패");
     console.error(updateError);
+    alert("업체 배정 실패");
     return;
   }
 
-  alert(`업체 배정 완료: ${selected.company_name}`);
+  alert(`업체 배정 완료: ${selected.name}`);
   loadOrders();
 }
   function renderNextActionButtons(order) {
