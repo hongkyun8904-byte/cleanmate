@@ -671,9 +671,6 @@ const specialCount = "-";
 
   renderCustomers();
 }
-  async function updateOrderStatus(orderId, newStatus) {
-  let updateData = {};
-
  async function updateOrderStatus(orderId, newStatus) {
   const { error } = await supabaseClient
     .from("orders")
@@ -689,19 +686,7 @@ const specialCount = "-";
   loadOrders();
 }
 
-  const { error: updateError } = await supabaseClient
-    .from("orders")
-    .update(updateData)
-    .eq("id", orderId);
-
-  if (updateError) {
-    alert("상태 변경 실패");
-    console.error(updateError);
-    return;
-  }
-
-  loadOrders();
-}
+ 
 async function assignCompany(orderId) {
   const { data: companies, error } = await supabaseClient
     .from("companies")
@@ -871,12 +856,6 @@ async function loadOrders() {
     window.selectedOrderId='${order.id}';
     document.getElementById('selectedOrderInfo').innerText =
       '선택된 주문: ${order.name} (${order.phone})';
-      <button
-  onclick="addReview()"
-  id="addReviewBtn"
->
-  리뷰 추가
-</button>
   "
 >
   📝 리뷰 선택
