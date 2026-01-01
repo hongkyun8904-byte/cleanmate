@@ -691,19 +691,22 @@ async function assignCompany(orderId) {
   const { data: companies, error } = await supabaseClient
     .from("companies")
     .select("company_name")
-    .eq("is_active", true)
-    .limit(1);
+    .eq("is_active", true);
 
   if (error || !companies || companies.length === 0) {
     alert("활성화된 업체가 없습니다");
     return;
   }
 
+  // 🔥 랜덤 선택
+  const selected =
+    companies[Math.floor(Math.random() * companies.length)];
+
   const { error: updateError } = await supabaseClient
     .from("orders")
     .update({
       status: "배정완료",
-      assigned_company: companies[0].company_name
+      assigned_company: selected.company_name
     })
     .eq("id", orderId);
 
@@ -713,7 +716,7 @@ async function assignCompany(orderId) {
     return;
   }
 
-  alert(`업체 배정 완료: ${companies[0].company_name}`);
+  alert(`업체 배정 완료: ${selected.company_name}`);
   loadOrders();
 }
   function renderNextActionButtons(order) {
