@@ -688,19 +688,32 @@ const specialCount = "-";
 
  
 async function assignCompany(orderId) {
+  // 1) 활성 업체 전체 불러오기
   const { data: companies, error } = await supabaseClient
     .from("companies")
-    .select("company_name")
+    .select("id, company_name, is_active")
     .eq("is_active", true);
 
-  if (error || !companies || companies.length === 0) {
+  console.log("✅ 활성업체 목록:", companies, "error:", error);
+
+  if (error) {
+    alert("업체 목록 조회 오류");
+    console.error(error);
+    return;
+  }
+
+  if (!companies || companies.length === 0) {
     alert("활성화된 업체가 없습니다");
     return;
   }
 
-  const selected =
-    companies[Math.floor(Math.random() * companies.length)];
+  // 2) 랜덤 선택 (진짜 랜덤)
+  const idx = Math.floor(Math.random() * companies.length);
+  const selected = companies[idx];
 
+  console.log("🎲 랜덤 idx:", idx, "선택된 업체:", selected);
+
+  // 3) 주문 업데이트
   const { error: updateError } = await supabaseClient
     .from("orders")
     .update({
