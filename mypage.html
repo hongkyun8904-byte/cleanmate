@@ -411,9 +411,20 @@ function goMyPage(){
   location.href = "mypage.html";
 }
 </script>
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(location.search);
+  const phone = params.get("phone");
+  if (phone) {
+    document.getElementById("phoneInput").value = phone;
+    loadMyOrder();
+  }
+});
+</script>
 </body>
 
 </html>
+
 
 
 
