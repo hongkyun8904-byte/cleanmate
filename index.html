@@ -1,6 +1,11 @@
  <!DOCTYPE html>
 <html lang="ko">
-<head>
+ <head>
+  <script>
+function goMyPage(){
+  location.href = "mypage.html";
+}
+</script>
 <script>
 if (!sessionStorage.getItem("introDone")) {
   location.replace("intro.html");
@@ -1490,13 +1495,9 @@ document.addEventListener("DOMContentLoaded", function(){
   };
 })();
 </script>
- <script>
-function goMyPage(){
-  location.href = "mypage.html";
-}
-</script>
 </body>
 </html>
+
 
 
 
