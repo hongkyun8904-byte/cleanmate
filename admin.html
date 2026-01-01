@@ -749,6 +749,7 @@ async function assignCompany(orderId) {
 
   let buttons = "";
 
+  // 접수됨 → 입금확인 / 반려
   if (order.status === "접수됨") {
     buttons += `
       <button onclick="updateOrderStatus('${order.id}', '입금확인')">
@@ -759,17 +760,32 @@ async function assignCompany(orderId) {
       </button>
     `;
   }
-if (order.status === "입금확인") {
-  buttons += `
-    <button onclick="assignCompany('${order.id}')">
-      🏢 업체 배정
-    </button>
-  `;
-}
 
+  // 입금확인 → 최초 업체 배정
+  if (order.status === "입금확인") {
+    buttons += `
+      <button onclick="assignCompany('${order.id}')">
+        🏢 업체 배정
+      </button>
+    `;
+  }
+
+  // ✅ 배정완료 → 재배정 버튼
+  if (order.status === "배정완료") {
+    buttons += `
+      <button
+        style="margin-left:6px;background:#fff3cd;color:#856404;border:1px solid #ffeeba;"
+        onclick="assignCompany('${order.id}')"
+      >
+        🔄 재배정
+      </button>
+    `;
+  }
+
+  // 공통 삭제
   buttons += `
     <button
-      style="color:#c62828;"
+      style="margin-left:6px;color:#c62828;"
       onclick="deleteOrder('${order.id}')"
     >
       ❌ 삭제
