@@ -126,30 +126,38 @@ const { data, error } = await supabaseClient
     return;
   }
 
-  list.innerHTML = data.map(order => `
-    <div class="card">
-      <b>${order.name}</b> (${order.phone})<br>
-      주소: ${order.address || "-"}<br>
-      청소일: ${order.clean_date || "-"}<br>
-      상태:
-      <span class="status ${
-  order.status === "배정완료" ? "done" :
-  order.status === "완료" ? "done" :
-  "wait"
-}">
-        ${order.status}
-      </span>
+list.innerHTML = data.map(order => `
+  <div class="card">
+    <b>${order.name}</b> (${order.phone})<br>
+    주소: ${order.address || "-"}<br>
 
-     <div>
- 
-  ${
-    order.status === "배정완료"
-      ? `<button onclick="markDone('${order.id}')">✅ 작업완료</button>`
-      : ""
-  }
-</div>
-    </div>
-  `).join("");
+    구조/평수: ${order.structure || "-"} / ${
+      order.supply_area ? order.supply_area + "평" : "-"
+    }<br>
+
+    청소일: ${order.clean_date || "-"}<br>
+    시간: ${order.clean_time || "-"}<br>
+
+    ${
+      order.side_clean_time
+        ? `사이청소 시간: ${order.side_clean_time}<br>`
+        : ""
+    }
+
+    상태:
+    <span class="status ${
+      order.status === "완료" ? "done" : "wait"
+    }">
+      ${order.status}
+    </span>
+
+    ${
+      order.status === "배정완료"
+        ? `<button onclick="markDone('${order.id}')">✅ 작업완료</button>`
+        : ""
+    }
+  </div>
+`).join("");
 }
 
 /* ===============================
