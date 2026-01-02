@@ -77,13 +77,7 @@ if(!leaderName || !companyName){
   alert("로그인이 필요합니다");
   location.href = "leader-login.html";
 }
-  /* ===============================
-   🔹 팀장 페이지 헤더 자동 표시
-   =============================== */
-const titleEl = document.getElementById("leaderTitle");
-if (titleEl) {
-  titleEl.innerText = `👷 ${companyName} / ${leaderName} 팀장`;
-}
+
 </script>
 <header>
   <h1 id="leaderTitle">👷 팀장 전용 페이지</h1>
