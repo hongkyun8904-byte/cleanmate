@@ -77,7 +77,7 @@ if(!companyId || !companyName){
 }
 </script>
 <header>
-  <h1>🏢 업체 전용 페이지</h1>
+  <h1 id="companyTitle">🏢 업체 전용 페이지</h1>
   <button onclick="logout()">로그아웃</button>
 </header>
   <!-- ===============================
@@ -302,10 +302,17 @@ async function assignLeader(orderId){
   alert("팀장 배정 완료");
   loadOrders();
 }
+/* ===============================
+   🔹 업체명 헤더 자동 표시
+   =============================== */
+const titleEl = document.getElementById("companyTitle");
+if (titleEl && companyName) {
+  titleEl.innerText = `🏢 ${companyName} 업체 페이지`;
+}
+
 /* 최초 실행 */
 loadLeaders();
 loadOrders();
 </script>
-
 </body>
 </html>
