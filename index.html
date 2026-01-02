@@ -926,6 +926,11 @@ let photoExtraTotal = 0;
   </div>
 </div>
 
+           <div class="checkbox-row">
+  <input type="radio" name="cleanTime" id="timeAny" value="시간무관" />
+  <label for="timeAny">시무 (시간무관)</label>
+</div>
+           
 <!-- ⏰ 사이청소 시간 (사이청소 체크 시만 사용) -->
 <div class="field" id="sideCleanTimeBox" style="display:none;">
   <label>사이청소 시간</label>
@@ -1429,11 +1434,23 @@ function submitOrder() {
     return;
   }
 
+  // ✅ 시간 계산을 객체 밖에서 먼저
+  let cleanTime = null;
+
+  if (document.getElementById("timeAny")?.checked) {
+    cleanTime = "시간무관";
+  } else if (timeMorning.checked) {
+    cleanTime = timeMorning.value;
+  } else if (timeAfternoon.checked) {
+    cleanTime = timeAfternoon.value;
+  }
+
   const totalPriceNumber = Number(
     document.getElementById("totalPriceText")
       .innerText.replace(/[^0-9]/g, "")
   );
 
+  // ✅ payload는 값만
   const payload = {
     name,
     phone,
@@ -1444,20 +1461,13 @@ function submitOrder() {
     total_price_text: totalPriceText.innerText,
     total_price_number: totalPriceNumber,
     clean_date: cleanDate.value,
-    clean_time: timeMorning.checked
-      ? timeMorning.value
-      : timeAfternoon.checked
-      ? timeAfternoon.value
-      : null,
-    side_clean_time: sideClean.checked
-      ? `${sideStartTime.value} ~ ${sideEndTime.value}`
-      : null
+    clean_time: cleanTime
   };
 
-  // ✅ 핵심: 여기서 DB 저장 ❌
+  // ✅ 저장
   localStorage.setItem("cleanmate_payload", JSON.stringify(payload));
 
-  // ✅ 바로 필수 동의 페이지로 이동
+  // ✅ 다음 단계
   location.href = "confirm.html";
 }
 </script>
@@ -1497,6 +1507,7 @@ document.addEventListener("DOMContentLoaded", function(){
 </script>
 </body>
 </html>
+
 
 
 
