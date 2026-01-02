@@ -148,11 +148,24 @@ async function loadOrders(){
     return;
   }
 
-  list.innerHTML = data.map(order => `
+list.innerHTML = data.map(order => `
   <div class="card">
     <b>${order.name}</b> (${order.phone})<br>
     주소: ${order.address || "-"}<br>
+
+    구조/평수: ${order.structure || "-"} / ${
+      order.supply_area ? order.supply_area + "평" : "-"
+    }<br>
+
     청소일: ${order.clean_date || "-"}<br>
+    시간: ${order.clean_time || "-"}<br>
+
+    ${
+      order.side_clean_time
+        ? `사이청소 시간: ${order.side_clean_time}<br>`
+        : ""
+    }
+
     상태:
     <span class="status ${
       order.status === "완료" ? "done" : "assigned"
@@ -160,20 +173,24 @@ async function loadOrders(){
       ${order.status}
     </span>
 
-   ${ order.status === "배정완료"
-  ? `<div style="margin-top:10px;">
-       <button onclick="assignLeader('${order.id}')">👤 팀장 배정</button>
-       <button onclick="markDone('${order.id}')">✅ 작업완료</button>
-       ${
-         order.assigned_leader
-           ? `<div style="margin-top:6px;color:#2e7d32;font-weight:700;">
-                팀장 배정 완료 (${order.assigned_leader})
-              </div>`
-           : ""
-       }
-     </div>`
-  : ""
-}
+    ${
+      order.status === "배정완료"
+        ? `
+        <div style="margin-top:10px;">
+          <button onclick="assignLeader('${order.id}')">👤 팀장 배정</button>
+          <button onclick="markDone('${order.id}')">✅ 작업완료</button>
+
+          ${
+            order.assigned_leader
+              ? `<div style="margin-top:6px;color:#2e7d32;font-weight:700;">
+                  팀장 배정 완료 (${order.assigned_leader})
+                </div>`
+              : ""
+          }
+        </div>
+        `
+        : ""
+    }
   </div>
 `).join("");
 }
