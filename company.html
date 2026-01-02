@@ -80,6 +80,29 @@ if(!companyId || !companyName){
   <h1>🏢 업체 전용 페이지</h1>
   <button onclick="logout()">로그아웃</button>
 </header>
+  <!-- ===============================
+     👤 팀장 등록 / 목록
+     =============================== -->
+<div class="container">
+
+  <div class="card">
+    <h3>👤 팀장 등록하기</h3>
+
+    <input id="leaderName" placeholder="팀장 이름"
+      style="width:100%;padding:8px;margin-bottom:6px;" />
+
+    <input id="leaderPassword" type="password" placeholder="비밀번호"
+      style="width:100%;padding:8px;margin-bottom:10px;" />
+
+    <button onclick="addLeader()">팀장 등록</button>
+  </div>
+
+  <div class="card">
+    <h3>📋 현재 등록된 팀장</h3>
+    <div id="leaderList">불러오는 중...</div>
+  </div>
+
+</div>
 
 <div class="container" id="orderList">
   불러오는 중...
@@ -137,13 +160,20 @@ async function loadOrders(){
       ${order.status}
     </span>
 
-    ${
-      order.status === "배정완료"
-        ? `<div style="margin-top:10px;">
-             <button onclick="markDone('${order.id}')">✅ 작업완료</button>
-           </div>`
-        : ""
-    }
+   ${ order.status === "배정완료"
+  ? `<div style="margin-top:10px;">
+       <button onclick="assignLeader('${order.id}')">👤 팀장 배정</button>
+       <button onclick="markDone('${order.id}')">✅ 작업완료</button>
+       ${
+         order.assigned_leader
+           ? `<div style="margin-top:6px;color:#2e7d32;font-weight:700;">
+                팀장 배정 완료 (${order.assigned_leader})
+              </div>`
+           : ""
+       }
+     </div>`
+  : ""
+}
   </div>
 `).join("");
 }
@@ -173,8 +203,67 @@ function logout(){
   sessionStorage.clear();
   location.href = "company-login.html";
 }
+/* ===============================
+   👤 팀장 관리 (이 업체 전용)
+   =============================== */
+
+async function addLeader(){
+  const name = document.getElementById("leaderName").value.trim();
+  const pw = document.getElementById("leaderPassword").value.trim();
+
+  if(!name || !pw){
+    alert("이름과 비밀번호를 입력하세요");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("teams")
+    .insert([{
+      company_name: COMPANY_NAME,
+      leader_name: name,
+      password: pw
+    }]);
+
+  if(error){
+    alert("팀장 등록 실패");
+    console.error(error);
+    return;
+  }
+
+  alert("팀장 등록 완료");
+  document.getElementById("leaderName").value = "";
+  document.getElementById("leaderPassword").value = "";
+
+  loadLeaders();
+}
+  
+
+async function loadLeaders(){
+  const box = document.getElementById("leaderList");
+
+  const { data, error } = await supabaseClient
+    .from("teams")
+    .select("leader_name")
+    .eq("company_name", COMPANY_NAME)
+    .order("created_at", { ascending:false });
+
+  if(error){
+    box.innerHTML = "불러오기 실패";
+    return;
+  }
+
+  if(!data || data.length === 0){
+    box.innerHTML = "등록된 팀장 없음";
+    return;
+  }
+
+  box.innerHTML = data
+    .map(t => `• ${t.leader_name}`)
+    .join("<br>");
+}
 
 /* 최초 실행 */
+loadLeaders();
 loadOrders();
 </script>
 
