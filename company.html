@@ -133,7 +133,7 @@ async function loadOrders(){
   const { data, error } = await supabaseClient
   .from("orders")
 .select("*")
-.eq("status", "배정완료")
+.in("status", ["배정완료", "완료"])
 .eq("assigned_company", COMPANY_NAME)
 .order("created_at", { ascending:false });
 
@@ -261,7 +261,30 @@ async function loadLeaders(){
     .map(t => `• ${t.leader_name}`)
     .join("<br>");
 }
+/* ===============================
+   👤 팀장 배정
+   =============================== */
+async function assignLeader(orderId){
+  const leaderName = prompt("배정할 팀장 이름을 정확히 입력하세요");
 
+  if(!leaderName) return;
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({
+      assigned_leader: leaderName
+    })
+    .eq("id", orderId);
+
+  if(error){
+    alert("팀장 배정 실패");
+    console.error(error);
+    return;
+  }
+
+  alert("팀장 배정 완료");
+  loadOrders();
+}
 /* 최초 실행 */
 loadLeaders();
 loadOrders();
