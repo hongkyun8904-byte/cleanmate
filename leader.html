@@ -199,6 +199,25 @@ function logout(){
 /* 최초 실행 */
 loadOrders();
 </script>
+<script>
+/* ===============================
+   👷 팀장 페이지 상단 타이틀 세팅 (확정본)
+   =============================== */
+document.addEventListener("DOMContentLoaded", function () {
+  const leaderName = sessionStorage.getItem("leader_name");
+  const companyName = sessionStorage.getItem("company_name");
 
+  if (!leaderName || !companyName) {
+    alert("로그인이 필요합니다");
+    location.href = "leader-login.html";
+    return;
+  }
+
+  const titleEl = document.getElementById("leaderTitle");
+  if (titleEl) {
+    titleEl.innerText = `👷 ${companyName} / ${leaderName} 팀장`;
+  }
+});
+</script>
 </body>
 </html>
