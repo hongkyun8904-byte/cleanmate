@@ -107,14 +107,13 @@ async function loadOrders(){
   const list = document.getElementById("orderList");
   list.innerHTML = "불러오는 중...";
 
-const { data, error } = await supabaseClient
-  .from("orders")
-  .select("*")
-  .eq("assigned_company", companyName)
-  .eq("assigned_leader", leaderName)
-  .not("assigned_leader", "is", null)  
-  .in("status", ["배정완료", "완료"])
-  .order("created_at", { ascending:false });
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .eq("assigned_company", companyName)
+    .eq("assigned_leader", leaderName)
+    .in("status", ["배정완료", "완료"])
+    .order("created_at", { ascending:false });
 
   if(error){
     list.innerHTML = "주문 불러오기 실패";
@@ -127,40 +126,79 @@ const { data, error } = await supabaseClient
     return;
   }
 
-list.innerHTML = data.map(order => `
-  <div class="card">
-    <b>${order.name}</b> (${order.phone})<br>
-    주소: ${order.address || "-"}<br>
+  /* ===============================
+     🔹 진행중 / 완료 작업 분리
+  =============================== */
+  const workingOrders = data.filter(o => o.status === "배정완료");
+  const completedOrders = data.filter(o => o.status === "완료");
 
-    구조/평수: ${order.structure || "-"} / ${
-      order.supply_area ? order.supply_area + "평" : "-"
-    }<br>
+  let html = "";
 
-    청소일: ${order.clean_date || "-"}<br>
-    시간: ${order.clean_time || "-"}<br>
+  /* ===============================
+     🔹 진행중 작업
+  =============================== */
+  if (workingOrders.length > 0) {
+    html += `<h3 style="margin:16px 0;">🧹 진행중 작업</h3>`;
 
-    ${
-      order.side_clean_time
-        ? `사이청소 시간: ${order.side_clean_time}<br>`
-        : ""
-    }
+    html += workingOrders.map(order => `
+      <div class="card">
+        <b>${order.name}</b> (${order.phone})<br>
+        주소: ${order.address || "-"}<br>
+        구조/평수: ${order.structure || "-"} / ${order.supply_area ? order.supply_area + "평" : "-"}<br>
+        청소일: ${order.clean_date || "-"}<br>
+        시간: ${order.clean_time || "-"}<br>
 
-    상태:
-    <span class="status ${
-      order.status === "완료" ? "done" : "wait"
-    }">
-      ${order.status}
-    </span>
+        상태:
+        <span class="status wait">배정완료</span>
 
-    ${
-      order.status === "배정완료"
-        ? `<button onclick="markDone('${order.id}')">✅ 작업완료</button>`
-        : ""
-    }
-  </div>
-`).join("");
+        <button onclick="markDone('${order.id}')">
+          ✅ 작업완료
+        </button>
+      </div>
+    `).join("");
+  } else {
+    html += `<p>진행중인 작업이 없습니다.</p>`;
+  }
+
+  /* ===============================
+     🔹 완료 작업 (날짜별)
+  =============================== */
+  if (completedOrders.length > 0) {
+    html += `<h3 style="margin:24px 0 12px;">📦 내가 완료한 작업</h3>`;
+
+    const grouped = {};
+
+    completedOrders.forEach(o => {
+      const date = o.completed_at
+        ? o.completed_at.slice(0, 10)
+        : "날짜 없음";
+
+      if (!grouped[date]) grouped[date] = [];
+      grouped[date].push(o);
+    });
+
+    Object.keys(grouped)
+      .sort((a,b) => b.localeCompare(a))
+      .forEach(date => {
+        html += `<div style="margin:10px 0;font-weight:700;">📅 ${date}</div>`;
+
+        html += grouped[date].map(order => `
+          <div class="card" style="opacity:0.8;">
+            <b>${order.name}</b> (${order.phone})<br>
+            주소: ${order.address || "-"}<br>
+            구조/평수: ${order.structure || "-"} / ${order.supply_area ? order.supply_area + "평" : "-"}<br>
+            완료시간: ${
+              order.completed_at
+                ? new Date(order.completed_at).toLocaleTimeString()
+                : "-"
+            }
+          </div>
+        `).join("");
+      });
+  }
+
+  list.innerHTML = html;
 }
-
 /* ===============================
    3️⃣ 상태 변경
    =============================== */
@@ -174,12 +212,21 @@ async function markPaid(id){
 }
 
 async function markDone(id){
-  await supabaseClient
+  const { error } = await supabaseClient
     .from("orders")
-    .update({ status:"완료" })
+    .update({
+      status: "완료",
+      completed_at: new Date().toISOString()
+    })
     .eq("id", id);
 
-  loadOrders();
+  if (error) {
+    alert("작업완료 처리 실패");
+    console.error(error);
+    return;
+  }
+
+  loadOrders(); // 즉시 반영
 }
 
 /* ===============================
