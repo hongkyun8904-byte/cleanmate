@@ -171,7 +171,17 @@ async function loadOrders(){
       시간: ${order.clean_time||"-"}<br>
       ${order.side_clean_time?`사이청소 시간: ${order.side_clean_time}<br>`:""}
       상태:
-      <span class="status ${order.status==="완료"?"done":"assigned"}">${order.status}</span>
+    <span class="status ${order.status==="완료"?"done":"assigned"}">
+  ${order.status}
+</span>
+
+${
+  order.status === "배정완료"
+    ? `<button onclick="markDone('${order.id}')" style="margin-left:8px;">
+        ✅ 작업완료
+      </button>`
+    : ""
+}
 
       ${order.status==="배정완료"?`
       <div style="margin-top:10px;">
@@ -195,6 +205,26 @@ async function assignLeaderWithSelect(orderId){
   await supabaseClient.from("orders").update({assigned_leader:sel.value}).eq("id",orderId);
   loadOrders();
 }
+/* ===============================
+   ✅ 작업완료 처리 (업체 페이지)
+=============================== */
+async function markDone(id){
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({
+      status: "완료",
+      completed_at: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert("작업완료 처리 실패");
+    console.error(error);
+    return;
+  }
+
+  loadOrders(); // 👈 즉시 화면 반영
+}  
 
 /* 팀장 관리 */
 async function addLeader(){
