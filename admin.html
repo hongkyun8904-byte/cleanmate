@@ -1033,87 +1033,6 @@ if (tab === "orders") {
   loadCompanies();
   return;
 }
-
-  async function loadCompanies() {
-  const { data, error } = await supabaseClient
-    .from("companies")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error(error);
-    alert("업체 목록 로드 실패");
-    return;
-  }
-
-  const list = document.getElementById("companyList");
-  if (!list) return;
-
-  if (!data || data.length === 0) {
-    list.innerHTML = "등록된 업체 없음";
-    return;
-  }
-
-  list.innerHTML = data.map(c => `
-    <div style="
-      background:#fff;
-      border-radius:12px;
-      padding:14px;
-      margin-bottom:10px;
-      box-shadow:0 4px 14px rgba(0,0,0,0.06);
-    ">
-      <b>${c.company_name}</b>
-      <span style="
-        margin-left:6px;
-        font-size:11px;
-        padding:2px 8px;
-        border-radius:999px;
-        background:${c.is_active ? "#e3f2fd" : "#fdecea"};
-        color:${c.is_active ? "#1565c0" : "#c62828"};
-      ">
-        ${c.is_active ? "활성" : "비활성"}
-      </span>
-
-      <div style="margin-top:8px;">
-        <button onclick="toggleCompanyActive('${c.id}', ${c.is_active})">
-          상태 변경
-        </button>
-        <button onclick="deleteCompany('${c.id}')" style="color:#c62828;">
-          삭제
-        </button>
-      </div>
-    </div>
-  `).join("");
-}
-async function toggleCompanyActive(id, current) {
-  const { error } = await supabaseClient
-    .from("companies")
-    .update({ is_active: !current })
-    .eq("id", id);
-
-  if (error) {
-    alert("상태 변경 실패");
-    return;
-  }
-
-  loadCompanies();
-}
-async function deleteCompany(id) {
-  if (!confirm("이 업체를 삭제할까요?")) return;
-
-  const { error } = await supabaseClient
-    .from("companies")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    alert("삭제 실패");
-    return;
-  }
-
-  loadCompanies();
-}
-
   
  /* ===============================
      리뷰 관리
@@ -1478,6 +1397,85 @@ function deleteCustomer(i) {
     customers.splice(i, 1);
     renderCustomers();
   }
+}
+ async function loadCompanies() {
+  const { data, error } = await supabaseClient
+    .from("companies")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    alert("업체 목록 로드 실패");
+    return;
+  }
+
+  const list = document.getElementById("companyList");
+  if (!list) return;
+
+  if (!data || data.length === 0) {
+    list.innerHTML = "등록된 업체 없음";
+    return;
+  }
+
+  list.innerHTML = data.map(c => `
+    <div style="
+      background:#fff;
+      border-radius:12px;
+      padding:14px;
+      margin-bottom:10px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.06);
+    ">
+      <b>${c.company_name}</b>
+      <span style="
+        margin-left:6px;
+        font-size:11px;
+        padding:2px 8px;
+        border-radius:999px;
+        background:${c.is_active ? "#e3f2fd" : "#fdecea"};
+        color:${c.is_active ? "#1565c0" : "#c62828"};
+      ">
+        ${c.is_active ? "활성" : "비활성"}
+      </span>
+
+      <div style="margin-top:8px;">
+        <button onclick="toggleCompanyActive('${c.id}', ${c.is_active})">
+          상태 변경
+        </button>
+        <button onclick="deleteCompany('${c.id}')" style="color:#c62828;">
+          삭제
+        </button>
+      </div>
+    </div>
+  `).join("");
+}
+async function toggleCompanyActive(id, current) {
+  const { error } = await supabaseClient
+    .from("companies")
+    .update({ is_active: !current })
+    .eq("id", id);
+
+  if (error) {
+    alert("상태 변경 실패");
+    return;
+  }
+
+  loadCompanies();
+}
+async function deleteCompany(id) {
+  if (!confirm("이 업체를 삭제할까요?")) return;
+
+  const { error } = await supabaseClient
+    .from("companies")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("삭제 실패");
+    return;
+  }
+
+  loadCompanies();
 }
 
 </script>
