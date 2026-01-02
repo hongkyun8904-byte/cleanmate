@@ -106,12 +106,13 @@ async function loadOrders(){
   const list = document.getElementById("orderList");
   list.innerHTML = "불러오는 중...";
 
-  const { data, error } = await supabaseClient
+const { data, error } = await supabaseClient
   .from("orders")
   .select("*")
- .eq("assigned_leader", leaderName)
-.eq("assigned_company", companyName)
-.in("status", ["배정완료", "완료"])
+  .eq("assigned_company", companyName)
+  .eq("assigned_leader", leaderName)
+  .not("assigned_leader", "is", null)  
+  .in("status", ["배정완료", "완료"])
   .order("created_at", { ascending:false });
 
   if(error){
