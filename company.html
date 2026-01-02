@@ -103,7 +103,18 @@ if(!companyId || !companyName){
   </div>
 
 </div>
-
+<!-- 🔍 작업 날짜 필터 -->
+<div class="container" style="margin-bottom:12px;">
+  <button onclick="setDateFilter('today')">📅 오늘 작업</button>
+  <button onclick="setDateFilter('tomorrow')">📅 내일 작업</button>
+  <button onclick="setDateFilter('all')">📋 전체</button>
+</div>
+  <!-- 🔍 작업 날짜 필터 -->
+<div class="container" style="margin-bottom:12px;">
+  <button onclick="setDateFilter('today')">📅 오늘 작업</button>
+  <button onclick="setDateFilter('tomorrow')">📅 내일 작업</button>
+  <button onclick="setDateFilter('all')">📋 전체</button>
+</div>
 <div class="container" id="orderList">
   불러오는 중...
 </div>
@@ -119,6 +130,8 @@ const supabaseClient = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
+/* 🔹 날짜 필터 상태 */
+let currentDateFilter = "all";  
 
 /* ⚠️ 지금은 업체 고정 */
 const COMPANY_NAME = companyName;
@@ -164,6 +177,31 @@ const COMPANY_NAME = companyName;
   }
 
   list.innerHTML = data.map(order => `
+  const today = new Date();
+today.setHours(0,0,0,0);
+
+const tomorrow = new Date(today);
+tomorrow.setDate(today.getDate() + 1);
+
+const filteredData = data.filter(order => {
+  if (currentDateFilter === "all") return true;
+  if (!order.clean_date) return false;
+
+  const orderDate = new Date(order.clean_date);
+  orderDate.setHours(0,0,0,0);
+
+  if (currentDateFilter === "today") {
+    return orderDate.getTime() === today.getTime();
+  }
+
+  if (currentDateFilter === "tomorrow") {
+    return orderDate.getTime() === tomorrow.getTime();
+  }
+
+  return true;
+});
+
+list.innerHTML = filteredData.map(order => `
     <div class="card">
       <b>${order.name}</b> (${order.phone})<br>
       주소: ${order.address || "-"}<br>
@@ -339,5 +377,11 @@ async function assignLeaderWithSelect(orderId){
   loadOrders();
 }
 </script> 
+  <script>
+function setDateFilter(type){
+  currentDateFilter = type;
+  loadOrders();
+}
+</script>
 </body>
 </html>
