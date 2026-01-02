@@ -101,6 +101,10 @@ if(!companyId || !companyName){
   <button onclick="setDateFilter('all')">📋 전체</button>
 </div>
 
+<div class="container" style="margin-bottom:12px;">
+  <button onclick="toggleCompleted()">✅ 완료 작업 보기 / 숨기기</button>
+</div>
+  
 <div class="container" id="orderList">불러오는 중...</div>
 
 <script>
@@ -110,6 +114,7 @@ const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentDateFilter = "all";
+let showCompleted = false;
 const COMPANY_NAME = companyName;
 
 /* 주문 로드 */
@@ -137,7 +142,14 @@ async function loadOrders(){
     .eq("assigned_company", COMPANY_NAME)
     .in("status", ["배정완료","완료"])
     .order("created_at",{ascending:false});
-
+  
+// 🔽 상태 기준 정렬 (완료는 항상 아래)
+data.sort((a, b) => {
+  if (a.status === "완료" && b.status !== "완료") return 1;
+  if (a.status !== "완료" && b.status === "완료") return -1;
+  return new Date(b.created_at) - new Date(a.created_at);
+});
+  
   if(error || !data){
     list.innerHTML = "주문 불러오기 실패";
     return;
@@ -161,8 +173,11 @@ async function loadOrders(){
     return;
   }
 
-  /* 카드 렌더링 */
-  list.innerHTML = filteredData.map(order=>`
+ /* 카드 렌더링 */
+list.innerHTML = filteredData
+  .filter(order => showCompleted || order.status !== "완료")
+  .map(order=>`
+  
     <div class="card">
       <b>${order.name}</b> (${order.phone})<br>
       주소: ${order.address||"-"}<br>
@@ -242,6 +257,12 @@ async function loadLeaders(){
 
 /* 기타 */
 function setDateFilter(t){ currentDateFilter=t; loadOrders(); }
+
+function toggleCompleted(){
+  showCompleted = !showCompleted;
+  loadOrders();
+}
+
 function logout(){ sessionStorage.clear(); location.href="company-login.html"; }
 
 document.getElementById("companyTitle").innerText=`🏢 ${companyName} 업체 페이지`;
