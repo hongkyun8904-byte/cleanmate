@@ -126,73 +126,88 @@ const COMPANY_NAME = companyName;
 /* ===============================
    2️⃣ 업체에 배정된 주문만 조회
    =============================== */
-async function loadOrders(){
+  async function loadOrders(){
   const list = document.getElementById("orderList");
   list.innerHTML = "불러오는 중...";
 
-  const { data, error } = await supabaseClient
-  .from("orders")
-.select("*")
-.in("status", ["배정완료", "완료"])
-.eq("assigned_company", COMPANY_NAME)
-.order("created_at", { ascending:false });
+  /* 🔹 팀장 옵션 */
+  let leaderOptionsHTML = "";
 
-  if(error){
+  const { data: leaders } = await supabaseClient
+    .from("teams")
+    .select("leader_name")
+    .eq("company_name", COMPANY_NAME);
+
+  if (leaders && leaders.length > 0) {
+    leaderOptionsHTML = leaders
+      .map(l => `<option value="${l.leader_name}">${l.leader_name}</option>`)
+      .join("");
+  }
+
+  /* 🔹 주문 */
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .eq("assigned_company", COMPANY_NAME)
+    .in("status", ["배정완료", "완료"])
+    .order("created_at", { ascending:false });
+
+  if (error) {
     list.innerHTML = "주문 불러오기 실패";
     console.error(error);
     return;
   }
 
-  if(!data || data.length === 0){
+  if (!data || data.length === 0) {
     list.innerHTML = "배정된 주문이 없습니다.";
     return;
   }
 
-list.innerHTML = data.map(order => `
-  <div class="card">
-    <b>${order.name}</b> (${order.phone})<br>
-    주소: ${order.address || "-"}<br>
+  list.innerHTML = data.map(order => `
+    <div class="card">
+      <b>${order.name}</b> (${order.phone})<br>
+      주소: ${order.address || "-"}<br>
 
-    구조/평수: ${order.structure || "-"} / ${
-      order.supply_area ? order.supply_area + "평" : "-"
-    }<br>
+      구조/평수: ${order.structure || "-"} / ${
+        order.supply_area ? order.supply_area + "평" : "-"
+      }<br>
 
-    청소일: ${order.clean_date || "-"}<br>
-    시간: ${order.clean_time || "-"}<br>
+      청소일: ${order.clean_date || "-"}<br>
+      시간: ${order.clean_time || "-"}<br>
 
-    ${
-      order.side_clean_time
-        ? `사이청소 시간: ${order.side_clean_time}<br>`
-        : ""
-    }
+      ${order.side_clean_time ? `사이청소 시간: ${order.side_clean_time}<br>` : ""}
 
-    상태:
-    <span class="status ${
-      order.status === "완료" ? "done" : "assigned"
-    }">
-      ${order.status}
-    </span>
+      상태:
+      <span class="status ${order.status === "완료" ? "done" : "assigned"}">
+        ${order.status}
+      </span>
 
-    ${
-      order.status === "배정완료"
-        ? `
-        <div style="margin-top:10px;">
-          <button onclick="assignLeader('${order.id}')">👤 팀장 배정</button>
-          <button onclick="markDone('${order.id}')">✅ 작업완료</button>
+      ${
+        order.status === "배정완료"
+          ? `
+          <div style="margin-top:10px;">
+            <select id="leaderSelect-${order.id}">
+              <option value="">팀장 선택</option>
+              ${leaderOptionsHTML}
+            </select>
 
-          ${
-            order.assigned_leader
-              ? `<div style="margin-top:6px;color:#2e7d32;font-weight:700;">
-                  팀장 배정 완료 (${order.assigned_leader})
-                </div>`
-              : ""
-          }
-        </div>
-        `
-        : ""
-    }
-  </div>
-`).join("");
+            <button onclick="assignLeaderWithSelect('${order.id}')">
+              👤 팀장 배정
+            </button>
+
+            ${
+              order.assigned_leader
+                ? `<div style="margin-top:6px;color:#2e7d32;font-weight:700;">
+                    팀장 배정 완료 (${order.assigned_leader})
+                  </div>`
+                : ""
+            }
+          </div>
+          `
+          : ""
+      }
+    </div>
+  `).join("");
 }
 async function markDone(id){
   const { error } = await supabaseClient
@@ -281,27 +296,7 @@ async function loadLeaders(){
 /* ===============================
    👤 팀장 배정
    =============================== */
-async function assignLeader(orderId){
-  const leaderName = prompt("배정할 팀장 이름을 정확히 입력하세요");
 
-  if(!leaderName) return;
-
-  const { error } = await supabaseClient
-    .from("orders")
-    .update({
-      assigned_leader: leaderName
-    })
-    .eq("id", orderId);
-
-  if(error){
-    alert("팀장 배정 실패");
-    console.error(error);
-    return;
-  }
-
-  alert("팀장 배정 완료");
-  loadOrders();
-}
 /* ===============================
    🔹 업체명 헤더 자동 표시
    =============================== */
@@ -313,6 +308,36 @@ if (titleEl && companyName) {
 /* 최초 실행 */
 loadLeaders();
 loadOrders();
+
 </script>
+ <script>
+/* ===============================
+   👤 팀장 select 배정 함수 (정상 위치)
+   =============================== */
+async function assignLeaderWithSelect(orderId){
+  const select = document.getElementById(`leaderSelect-${orderId}`);
+
+  if (!select || !select.value) {
+    alert("팀장을 선택하세요");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({
+      assigned_leader: select.value
+    })
+    .eq("id", orderId);
+
+  if (error) {
+    alert("팀장 배정 실패");
+    console.error(error);
+    return;
+  }
+
+  alert("팀장 배정 완료");
+  loadOrders();
+}
+</script> 
 </body>
 </html>
