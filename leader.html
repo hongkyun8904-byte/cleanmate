@@ -69,7 +69,15 @@
 </head>
 
 <body>
+<script>
+const leaderName = sessionStorage.getItem("leader_name");
+const companyName = sessionStorage.getItem("company_name");
 
+if(!leaderName || !companyName){
+  alert("로그인이 필요합니다");
+  location.href = "leader-login.html";
+}
+</script>
 <header>
   <h1>👷 팀장 전용 페이지</h1>
   <button onclick="logout()">로그아웃</button>
@@ -101,7 +109,9 @@ async function loadOrders(){
   const { data, error } = await supabaseClient
   .from("orders")
   .select("*")
-  .eq("status", "배정완료")
+ .eq("assigned_leader", leaderName)
+.eq("assigned_company", companyName)
+.in("status", ["배정완료", "완료"])
   .order("created_at", { ascending:false });
 
   if(error){
@@ -166,7 +176,8 @@ async function markDone(id){
    기타
    =============================== */
 function logout(){
-  location.href = "index.html";
+  sessionStorage.clear();
+  location.href = "leader-login.html";
 }
 
 /* 최초 실행 */
