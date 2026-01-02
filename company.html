@@ -12,7 +12,6 @@
       font-family:-apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui;
       background:#f5f7fb;
     }
-
     header{
       max-width:1200px;
       margin:0 auto 20px;
@@ -20,18 +19,15 @@
       justify-content:space-between;
       align-items:center;
     }
-
     header h1{
       margin:0;
       font-size:20px;
       color:#2e7d32;
     }
-
     .container{
       max-width:1200px;
       margin:0 auto;
     }
-
     .card{
       background:#fff;
       border-radius:14px;
@@ -40,7 +36,6 @@
       box-shadow:0 6px 18px rgba(0,0,0,0.06);
       font-size:14px;
     }
-
     .status{
       display:inline-block;
       padding:4px 10px;
@@ -48,10 +43,8 @@
       font-size:12px;
       font-weight:700;
     }
-
     .status.assigned{ background:#e3f2fd; color:#1565c0; }
     .status.done{ background:#e8f5e9; color:#2e7d32; }
-
     button{
       padding:6px 12px;
       border-radius:8px;
@@ -60,13 +53,17 @@
       cursor:pointer;
       font-weight:600;
     }
+    select{
+      padding:6px;
+      border-radius:6px;
+    }
   </style>
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
+
 <script>
 const companyId = sessionStorage.getItem("company_id");
 const companyName = sessionStorage.getItem("company_name");
@@ -76,24 +73,18 @@ if(!companyId || !companyName){
   location.href = "company-login.html";
 }
 </script>
+
 <header>
   <h1 id="companyTitle">🏢 업체 전용 페이지</h1>
   <button onclick="logout()">로그아웃</button>
 </header>
-  <!-- ===============================
-     👤 팀장 등록 / 목록
-     =============================== -->
-<div class="container">
 
+<!-- 팀장 등록 / 목록 -->
+<div class="container">
   <div class="card">
     <h3>👤 팀장 등록하기</h3>
-
-    <input id="leaderName" placeholder="팀장 이름"
-      style="width:100%;padding:8px;margin-bottom:6px;" />
-
-    <input id="leaderPassword" type="password" placeholder="비밀번호"
-      style="width:100%;padding:8px;margin-bottom:10px;" />
-
+    <input id="leaderName" placeholder="팀장 이름" style="width:100%;padding:8px;margin-bottom:6px;">
+    <input id="leaderPassword" type="password" placeholder="비밀번호" style="width:100%;padding:8px;margin-bottom:10px;">
     <button onclick="addLeader()">팀장 등록</button>
   </div>
 
@@ -101,287 +92,132 @@ if(!companyId || !companyName){
     <h3>📋 현재 등록된 팀장</h3>
     <div id="leaderList">불러오는 중...</div>
   </div>
+</div>
 
-</div>
-<!-- 🔍 작업 날짜 필터 -->
+<!-- 날짜 필터 -->
 <div class="container" style="margin-bottom:12px;">
   <button onclick="setDateFilter('today')">📅 오늘 작업</button>
   <button onclick="setDateFilter('tomorrow')">📅 내일 작업</button>
   <button onclick="setDateFilter('all')">📋 전체</button>
 </div>
-  <!-- 🔍 작업 날짜 필터 -->
-<div class="container" style="margin-bottom:12px;">
-  <button onclick="setDateFilter('today')">📅 오늘 작업</button>
-  <button onclick="setDateFilter('tomorrow')">📅 내일 작업</button>
-  <button onclick="setDateFilter('all')">📋 전체</button>
-</div>
-<div class="container" id="orderList">
-  불러오는 중...
-</div>
+
+<div class="container" id="orderList">불러오는 중...</div>
 
 <script>
-/* ===============================
-   1️⃣ Supabase 연결
-   =============================== */
+/* Supabase */
 const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
 const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-/* 🔹 날짜 필터 상태 */
-let currentDateFilter = "all";  
-
-/* ⚠️ 지금은 업체 고정 */
+let currentDateFilter = "all";
 const COMPANY_NAME = companyName;
 
-/* ===============================
-   2️⃣ 업체에 배정된 주문만 조회
-   =============================== */
-  async function loadOrders(){
+/* 주문 로드 */
+async function loadOrders(){
   const list = document.getElementById("orderList");
   list.innerHTML = "불러오는 중...";
 
-  /* 🔹 팀장 옵션 */
+  /* 팀장 옵션 */
   let leaderOptionsHTML = "";
-
   const { data: leaders } = await supabaseClient
     .from("teams")
     .select("leader_name")
     .eq("company_name", COMPANY_NAME);
 
-  if (leaders && leaders.length > 0) {
-    leaderOptionsHTML = leaders
-      .map(l => `<option value="${l.leader_name}">${l.leader_name}</option>`)
-      .join("");
+  if (leaders?.length) {
+    leaderOptionsHTML = leaders.map(l =>
+      `<option value="${l.leader_name}">${l.leader_name}</option>`
+    ).join("");
   }
 
-  /* 🔹 주문 */
+  /* 주문 조회 */
   const { data, error } = await supabaseClient
     .from("orders")
     .select("*")
     .eq("assigned_company", COMPANY_NAME)
-    .in("status", ["배정완료", "완료"])
-    .order("created_at", { ascending:false });
+    .in("status", ["배정완료","완료"])
+    .order("created_at",{ascending:false});
 
-  if (error) {
+  if(error || !data){
     list.innerHTML = "주문 불러오기 실패";
-    console.error(error);
     return;
   }
 
-  if (!data || data.length === 0) {
-    list.innerHTML = "배정된 주문이 없습니다.";
+  /* 날짜 필터 */
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
+
+  const filteredData = data.filter(o=>{
+    if(currentDateFilter==="all") return true;
+    if(!o.clean_date) return false;
+    const d = new Date(o.clean_date); d.setHours(0,0,0,0);
+    if(currentDateFilter==="today") return d.getTime()===today.getTime();
+    if(currentDateFilter==="tomorrow") return d.getTime()===tomorrow.getTime();
+    return true;
+  });
+
+  if(filteredData.length===0){
+    list.innerHTML="해당 날짜 작업 없음";
     return;
   }
 
-  list.innerHTML = data.map(order => `
-  const today = new Date();
-today.setHours(0,0,0,0);
-
-const tomorrow = new Date(today);
-tomorrow.setDate(today.getDate() + 1);
-
-const filteredData = data.filter(order => {
-  if (currentDateFilter === "all") return true;
-  if (!order.clean_date) return false;
-
-  const orderDate = new Date(order.clean_date);
-  orderDate.setHours(0,0,0,0);
-
-  if (currentDateFilter === "today") {
-    return orderDate.getTime() === today.getTime();
-  }
-
-  if (currentDateFilter === "tomorrow") {
-    return orderDate.getTime() === tomorrow.getTime();
-  }
-
-  return true;
-});
-
-list.innerHTML = filteredData.map(order => `
+  /* 카드 렌더링 */
+  list.innerHTML = filteredData.map(order=>`
     <div class="card">
       <b>${order.name}</b> (${order.phone})<br>
-      주소: ${order.address || "-"}<br>
-
-      구조/평수: ${order.structure || "-"} / ${
-        order.supply_area ? order.supply_area + "평" : "-"
-      }<br>
-
-      청소일: ${order.clean_date || "-"}<br>
-      시간: ${order.clean_time || "-"}<br>
-
-      ${order.side_clean_time ? `사이청소 시간: ${order.side_clean_time}<br>` : ""}
-
+      주소: ${order.address||"-"}<br>
+      구조/평수: ${order.structure||"-"} / ${order.supply_area?order.supply_area+"평":"-"}<br>
+      청소일: ${order.clean_date||"-"}<br>
+      시간: ${order.clean_time||"-"}<br>
+      ${order.side_clean_time?`사이청소 시간: ${order.side_clean_time}<br>`:""}
       상태:
-      <span class="status ${order.status === "완료" ? "done" : "assigned"}">
-        ${order.status}
-      </span>
+      <span class="status ${order.status==="완료"?"done":"assigned"}">${order.status}</span>
 
-      ${
-        order.status === "배정완료"
-          ? `
-          <div style="margin-top:10px;">
-            <select id="leaderSelect-${order.id}">
-              <option value="">팀장 선택</option>
-              ${leaderOptionsHTML}
-            </select>
-
-            <button onclick="assignLeaderWithSelect('${order.id}')">
-              👤 팀장 배정
-            </button>
-
-            ${
-              order.assigned_leader
-                ? `<div style="margin-top:6px;color:#2e7d32;font-weight:700;">
-                    팀장 배정 완료 (${order.assigned_leader})
-                  </div>`
-                : ""
-            }
-          </div>
-          `
-          : ""
-      }
+      ${order.status==="배정완료"?`
+      <div style="margin-top:10px;">
+        <select id="leaderSelect-${order.id}">
+          <option value="">팀장 선택</option>
+          ${leaderOptionsHTML}
+        </select>
+        <button onclick="assignLeaderWithSelect('${order.id}')">👤 팀장 배정</button>
+        ${order.assigned_leader?`<div style="margin-top:6px;color:#2e7d32;font-weight:700;">
+          팀장 배정 완료 (${order.assigned_leader})
+        </div>`:""}
+      </div>`:""}
     </div>
   `).join("");
 }
-async function markDone(id){
-  const { error } = await supabaseClient
-    .from("orders")
-    .update({
-      status: "완료",
-      review_open: true
-    })
-    .eq("id", id);
 
-  if (error) {
-    alert("작업완료 처리 실패");
-    console.error(error);
-    return;
-  }
-
-  alert("작업 완료 처리되었습니다.");
+/* 팀장 배정 */
+async function assignLeaderWithSelect(orderId){
+  const sel=document.getElementById(`leaderSelect-${orderId}`);
+  if(!sel||!sel.value){ alert("팀장 선택"); return; }
+  await supabaseClient.from("orders").update({assigned_leader:sel.value}).eq("id",orderId);
   loadOrders();
 }
-  
-/* ===============================
-   기타
-   =============================== */
-function logout(){
-  sessionStorage.clear();
-  location.href = "company-login.html";
-}
-/* ===============================
-   👤 팀장 관리 (이 업체 전용)
-   =============================== */
 
+/* 팀장 관리 */
 async function addLeader(){
-  const name = document.getElementById("leaderName").value.trim();
-  const pw = document.getElementById("leaderPassword").value.trim();
-
-  if(!name || !pw){
-    alert("이름과 비밀번호를 입력하세요");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("teams")
-    .insert([{
-      company_name: COMPANY_NAME,
-      leader_name: name,
-      password: pw
-    }]);
-
-  if(error){
-    alert("팀장 등록 실패");
-    console.error(error);
-    return;
-  }
-
-  alert("팀장 등록 완료");
-  document.getElementById("leaderName").value = "";
-  document.getElementById("leaderPassword").value = "";
-
+  const n=leaderName.value.trim(), p=leaderPassword.value.trim();
+  if(!n||!p) return alert("입력");
+  await supabaseClient.from("teams").insert([{company_name:COMPANY_NAME,leader_name:n,password:p}]);
+  leaderName.value=""; leaderPassword.value="";
   loadLeaders();
 }
-  
-
 async function loadLeaders(){
-  const box = document.getElementById("leaderList");
-
-  const { data, error } = await supabaseClient
-    .from("teams")
-    .select("leader_name")
-    .eq("company_name", COMPANY_NAME)
-    .order("created_at", { ascending:false });
-
-  if(error){
-    box.innerHTML = "불러오기 실패";
-    return;
-  }
-
-  if(!data || data.length === 0){
-    box.innerHTML = "등록된 팀장 없음";
-    return;
-  }
-
-  box.innerHTML = data
-    .map(t => `• ${t.leader_name}`)
-    .join("<br>");
-}
-/* ===============================
-   👤 팀장 배정
-   =============================== */
-
-/* ===============================
-   🔹 업체명 헤더 자동 표시
-   =============================== */
-const titleEl = document.getElementById("companyTitle");
-if (titleEl && companyName) {
-  titleEl.innerText = `🏢 ${companyName} 업체 페이지`;
+  const box=document.getElementById("leaderList");
+  const {data}=await supabaseClient.from("teams").select("leader_name").eq("company_name",COMPANY_NAME);
+  box.innerHTML=data?.length?data.map(t=>"• "+t.leader_name).join("<br>"):"등록 없음";
 }
 
-/* 최초 실행 */
+/* 기타 */
+function setDateFilter(t){ currentDateFilter=t; loadOrders(); }
+function logout(){ sessionStorage.clear(); location.href="company-login.html"; }
+
+document.getElementById("companyTitle").innerText=`🏢 ${companyName} 업체 페이지`;
 loadLeaders();
 loadOrders();
-
 </script>
- <script>
-/* ===============================
-   👤 팀장 select 배정 함수 (정상 위치)
-   =============================== */
-async function assignLeaderWithSelect(orderId){
-  const select = document.getElementById(`leaderSelect-${orderId}`);
 
-  if (!select || !select.value) {
-    alert("팀장을 선택하세요");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("orders")
-    .update({
-      assigned_leader: select.value
-    })
-    .eq("id", orderId);
-
-  if (error) {
-    alert("팀장 배정 실패");
-    console.error(error);
-    return;
-  }
-
-  alert("팀장 배정 완료");
-  loadOrders();
-}
-</script> 
-  <script>
-function setDateFilter(type){
-  currentDateFilter = type;
-  loadOrders();
-}
-</script>
 </body>
 </html>
