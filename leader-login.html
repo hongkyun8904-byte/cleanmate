@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>팀장 로그인 | CleanMate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    body{
+      margin:0;
+      padding:20px;
+      font-family:-apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui;
+      background:#f5f7fb;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+    }
+    .card{
+      background:#fff;
+      padding:20px;
+      border-radius:14px;
+      width:100%;
+      max-width:360px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    }
+    h2{ margin-top:0; }
+    input{
+      width:100%;
+      padding:10px;
+      margin-bottom:10px;
+      border-radius:8px;
+      border:1px solid #ccc;
+    }
+    button{
+      width:100%;
+      padding:10px;
+      border-radius:8px;
+      border:none;
+      background:#0288d1;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="card">
+  <h2>👷 팀장 로그인</h2>
+
+  <input id="leaderName" placeholder="팀장 이름" />
+  <input id="leaderPassword" type="password" placeholder="비밀번호" />
+
+  <button onclick="login()">로그인</button>
+</div>
+
+<script>
+const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+async function login(){
+  const name = document.getElementById("leaderName").value.trim();
+  const pw = document.getElementById("leaderPassword").value.trim();
+
+  if(!name || !pw){
+    alert("이름과 비밀번호를 입력하세요");
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("teams")
+    .select("*")
+    .eq("leader_name", name)
+    .eq("password", pw)
+    .single();
+
+  if(error || !data){
+    alert("로그인 실패");
+    return;
+  }
+
+  // ✅ 로그인 성공 → 세션 저장
+  sessionStorage.setItem("leader_name", data.leader_name);
+  sessionStorage.setItem("company_name", data.company_name);
+
+  location.href = "leader.html";
+}
+</script>
+
+</body>
+</html>
