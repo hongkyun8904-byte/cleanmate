@@ -195,21 +195,15 @@ async function finalSubmit() {
   }
 
   const { error: customerError } = await supabaseClient
-    .from("customers")
-    .upsert(
-      {
-        name: payload.name,
-        phone: payload.phone,
-        address: payload.address,
-        memo: payload.memo
-      },
-      { onConflict: "phone" }
-    );
+  .from("customers")
+  .insert([{
+    name: payload.name,
+    phone: payload.phone
+  }]);
 
-  if (customerError) {
-    alert("고객 저장 오류");
-    return;
-  }
+if (customerError) {
+  console.error(customerError);
+}
 
   const { error: orderError } = await supabaseClient
     .from("orders")
