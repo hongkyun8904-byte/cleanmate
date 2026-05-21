@@ -147,7 +147,9 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // payload 불러오기
 const payload = JSON.parse(localStorage.getItem("환승클린_payload") || "null");
-const priceText = payload.total_price_text;   // "330,000원"
+
+const priceText = payload ? payload.total_price_text : null;
+
 const priceNumber = priceText
   ? parseInt(priceText.replace(/[^\d]/g, ""), 10)
   : null;
@@ -222,11 +224,11 @@ if (customerError) {
   status: "접수됨"
 }]);
 
-  if (orderError) {
-    alert("예약 저장 오류");
-    return;
-  }
-
+ if (orderError) {
+  console.error(orderError);
+  alert("예약 저장 오류: " + orderError.message);
+  return;
+}
    localStorage.removeItem("환승클린_payload");
 
   alert(
