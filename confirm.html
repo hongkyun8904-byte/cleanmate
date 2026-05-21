@@ -199,17 +199,7 @@ async function finalSubmit() {
     return;
   }
 
-  const { error: customerError } = await supabaseClient
-  .from("customers")
-  .insert([{
-    name: payload.name,
-    phone: payload.phone
-  }]);
-
-if (customerError) {
-  console.error(customerError);
-}
-
+  
   const { error: orderError } = await supabaseClient
     .from("orders")
 .insert([{
