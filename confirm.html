@@ -143,8 +143,11 @@
 <script>
 const SUPABASE_URL = "https://nuchpyxjyqcpldpnffhu.supabase.co";
 const SUPABASE_KEY = "sb_publishable_edX6Oi2eo5A5MjYYo323Fg_6ESnzQmL";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 // payload 불러오기
 const payload = JSON.parse(localStorage.getItem("환승클린_payload") || "null");
 
